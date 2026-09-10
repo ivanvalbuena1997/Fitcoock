@@ -1,0 +1,2180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E1218">
+<title>FitCoock</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FitCoock">
+<style>
+:root{
+  --bg:#0E1218;
+  --surface:#161D25;
+  --surface2:#1F2833;
+  --line:#2B3743;
+  --line-soft:#232E39;
+  --text:#EAF0F5;
+  --muted:#8496A5;
+
+  --accent:#34D3C0;
+  --entreno:#34D3C0;
+  --entreno-bg:rgba(52,211,192,.14);
+  --descanso:#A78BFA;
+  --descanso-bg:rgba(167,139,250,.14);
+
+  --prot:#FF6B6B;  --prot-bg:rgba(255,107,107,.14);
+  --hid:#FFB020;   --hid-bg:rgba(255,176,32,.14);
+  --gra:#B77BFF;   --gra-bg:rgba(183,123,255,.14);
+  --fib:#3ECF8E;   --fib-bg:rgba(62,207,142,.14);
+
+  --m-desayuno:#FFB020;
+  --m-almuerzo:#3ECF8E;
+  --m-comida:#FF8A3D;
+  --m-merienda:#FF6BAA;
+  --m-cena:#6C8CFF;
+
+  --danger:#F0616A;
+  --r:12px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:15px;line-height:1.45;-webkit-text-size-adjust:100%;
+  padding-bottom:44px;
+}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.wrap{max-width:560px;margin:0 auto;padding:0 14px}
+
+header{
+  position:sticky;top:0;z-index:30;background:var(--bg);
+  border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top);
+}
+.brand{display:flex;align-items:center;gap:9px;padding:12px 0 9px}
+.brand h1{font-size:19px;letter-spacing:-.02em;margin:0;font-weight:650}
+.brand .sub{color:var(--muted);font-size:12px;margin-left:auto}
+nav{display:flex;gap:5px;padding-bottom:9px}
+nav button{
+  flex:1;background:none;border:1px solid transparent;color:var(--muted);
+  padding:8px 2px;border-radius:9px;font-size:12.5px;font-family:inherit;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+}
+nav button i{font-style:normal;font-size:15px;filter:saturate(1.1)}
+nav button[aria-selected="true"]{background:var(--surface2);color:var(--text);border-color:var(--line)}
+#tab-alimentos[aria-selected="true"]{box-shadow:inset 0 -2px 0 var(--fib)}
+#tab-menus[aria-selected="true"]{box-shadow:inset 0 -2px 0 var(--m-comida)}
+#tab-objetivo[aria-selected="true"]{box-shadow:inset 0 -2px 0 var(--prot)}
+#tab-compra[aria-selected="true"]{box-shadow:inset 0 -2px 0 var(--m-cena)}
+.selrow{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);padding:10px 12px;margin-bottom:7px}
+.selrow input{width:66px;flex:none;text-align:center}
+.compraitem{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--line-soft);padding:11px 2px;color:var(--text);cursor:pointer}
+.compraitem:last-child{border-bottom:none}
+.compraitem.ok .nm{text-decoration:line-through;color:var(--muted)}
+.check{width:22px;height:22px;flex:none;border-radius:7px;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:13px}
+.supbloque{margin-bottom:14px}
+.supcab{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;padding:7px 10px;border-radius:9px;margin-bottom:2px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+h2{font-size:15px;font-weight:600;margin:20px 0 8px;letter-spacing:-.01em;display:flex;align-items:center;gap:7px}
+.muted{color:var(--muted)}
+.small{font-size:12.5px}
+.row{display:flex;gap:8px;align-items:center}
+.grow{flex:1}
+button{font-family:inherit}
+.btn{
+  background:var(--surface2);color:var(--text);border:1px solid var(--line);
+  border-radius:9px;padding:10px 12px;font-size:14px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#062018;font-weight:650}
+.btn.ghost{background:none}
+.btn.danger{color:var(--danger);border-color:#4A2429;background:none}
+.btn.small{padding:7px 10px;font-size:12.5px}
+input,select,textarea{
+  background:var(--surface);color:var(--text);border:1px solid var(--line);
+  border-radius:8px;padding:10px;font-size:15px;font-family:inherit;width:100%;
+}
+input::placeholder{color:#5D6C79}
+label.f{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
+.card{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);padding:13px}
+.empty{border:1px dashed var(--line);border-radius:var(--r);padding:24px 16px;text-align:center;color:var(--muted);font-size:14px}
+.empty .big{display:block;font-size:26px;margin-bottom:8px;opacity:.85}
+.hidden{display:none !important}
+
+/* etiquetas de macro */
+.mp{font-size:11px;padding:2px 6px;border-radius:6px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mp.p{color:#FF9494;background:var(--prot-bg)}
+.mp.h{color:#FFC55C;background:var(--hid-bg)}
+.mp.g{color:#CBA3FF;background:var(--gra-bg)}
+.mp.f{color:#6FE0AC;background:var(--fib-bg)}
+.mps{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+
+/* segmentado */
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{flex:1;background:none;border:none;color:var(--muted);padding:10px 6px;font-size:13.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.seg button + button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"][data-t="entreno"]{background:var(--entreno-bg);color:var(--entreno);font-weight:650}
+.seg button[aria-pressed="true"][data-t="descanso"]{background:var(--descanso-bg);color:var(--descanso);font-weight:650}
+.seg.plain button[aria-pressed="true"]{background:var(--surface2);color:var(--text);font-weight:650;box-shadow:inset 0 -2px 0 var(--m-comida)}
+.datebar{display:flex;align-items:center;gap:8px;margin-top:13px}
+.datebar .d{flex:1;text-align:center;font-size:14.5px}
+.datebar .d small{display:block;color:var(--muted);font-size:11.5px}
+.arrow{background:var(--surface2);border:1px solid var(--line);color:var(--text);width:40px;height:40px;border-radius:10px;font-size:17px;cursor:pointer;flex:none}
+.tag.libre{color:var(--m-merienda);background:rgba(255,107,170,.14)}
+.diadot{width:9px;height:9px;border-radius:50%;flex:none}
+.semgraf{display:flex;gap:5px;align-items:flex-end;height:150px}
+.semdia{flex:1;background:none;border:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:var(--text);height:100%}
+.sembar{position:relative;flex:1;width:100%;background:var(--surface2);border-radius:4px;overflow:hidden;display:block}
+.semfill{position:absolute;left:0;right:0;bottom:0;border-radius:4px}
+.semobj{position:absolute;left:0;right:0;height:2px;background:rgba(255,255,255,.55);z-index:2}
+.semnum{font-size:10.5px;color:var(--muted)}
+.semlb{font-size:11px;color:var(--muted)}
+
+.flist{display:flex;flex-direction:column;gap:7px}
+.fitem{
+  display:flex;align-items:center;gap:11px;width:100%;text-align:left;
+  background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);
+  padding:11px 12px;cursor:pointer;color:var(--text);
+}
+.fitem .nm{font-size:14.5px}
+.badge{
+  width:34px;height:34px;flex:none;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:650;
+}
+.tag{font-size:10.5px;border-radius:5px;padding:2px 6px;margin-left:6px;vertical-align:2px;white-space:nowrap}
+.tag.plato{color:var(--m-comida);background:rgba(255,138,61,.14)}
+.tag.entreno{color:var(--entreno);background:var(--entreno-bg)}
+.tag.descanso{color:var(--descanso);background:var(--descanso-bg)}
+.kcalbig{font-size:15.5px;text-align:right;line-height:1.15;font-weight:600}
+.kcalbig small{display:block;font-size:10.5px;color:var(--muted);font-weight:400}
+.kcalbig small.up{color:var(--prot)} .kcalbig small.down{color:var(--fib)}
+
+.chips{display:flex;gap:6px;margin:12px 0}
+.chips.wrapx{flex-wrap:wrap;margin:0 0 12px}
+.chips.wrapx .chip{padding:5px 10px;font-size:12px}
+.supsel{display:flex;flex-wrap:wrap;gap:6px}
+.supsel button{border:1px solid var(--line);background:none;color:var(--muted);border-radius:20px;padding:7px 12px;font-size:12.5px;cursor:pointer}
+.chip{background:none;border:1px solid var(--line);color:var(--muted);border-radius:20px;padding:6px 12px;font-size:12.5px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--surface2);color:var(--text);border-color:var(--line)}
+#mf-entreno[aria-pressed="true"]{background:var(--entreno-bg);color:var(--entreno);border-color:transparent}
+#mf-descanso[aria-pressed="true"]{background:var(--descanso-bg);color:var(--descanso);border-color:transparent}
+
+.ruler{margin:13px 0 2px}
+.ruler .top{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;margin-bottom:6px}
+.ruler .top .lb{display:flex;align-items:center;gap:6px;color:var(--muted)}
+.ruler .top b{font-weight:650;font-size:13px}
+.dot{width:8px;height:8px;border-radius:3px;flex:none}
+.track{position:relative;height:10px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.fill{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.over{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.6) 0 3px,transparent 3px 6px)}
+.ticks{position:absolute;inset:0;display:flex;pointer-events:none}
+.ticks i{flex:1;border-right:1px solid rgba(255,255,255,.09)}
+.ticks i:last-child{border-right:none}
+.kcalhero{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:2px 0 8px}
+.kcalhero .n{font-size:36px;font-weight:680;letter-spacing:-.03em;line-height:1}
+.kcalhero .n span{font-size:15px;font-weight:400;color:var(--muted);letter-spacing:0}
+.kcalhero .rest{text-align:right;font-size:12.5px;color:var(--muted)}
+.kcalhero .rest b{display:block;font-size:15px;font-weight:650}
+
+.meal{background:var(--surface);border:1px solid var(--line-soft);border-left-width:3px;border-radius:var(--r);margin-bottom:9px;overflow:hidden}
+.meal > .head{display:flex;align-items:center;gap:10px;padding:11px 12px;border-bottom:1px solid var(--line-soft)}
+.meal > .head .t{font-size:14.5px;font-weight:600;flex:1}
+.meal > .head .t small{display:block;font-weight:400;color:var(--muted);font-size:11.5px}
+.meal .items{display:flex;flex-direction:column}
+.mi{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line-soft);background:none;border-left:0;border-right:0;border-top:0;color:var(--text);text-align:left;width:100%;cursor:pointer}
+.mi:last-child{border-bottom:none}
+.mi .nm{font-size:14px}
+.addline{padding:9px 12px}
+
+.modal{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;background:rgba(3,6,9,.7)}
+.sheet{
+  width:100%;max-width:560px;max-height:92vh;overflow:auto;
+  background:var(--bg);border:1px solid var(--line);border-radius:16px 16px 0 0;
+  padding:14px 14px calc(18px + env(safe-area-inset-bottom));
+}
+@media(min-width:600px){.modal{align-items:center}.sheet{border-radius:16px}}
+.sheet h3{margin:2px 0 12px;font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+textarea{min-height:120px;resize:vertical;line-height:1.5}
+.grid5{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.grid5 .cell{border-radius:9px;padding:8px;border:1px solid var(--line-soft)}
+.cell.c-kcal{background:rgba(52,211,192,.07)} .cell.c-p{background:var(--prot-bg)}
+.cell.c-h{background:var(--hid-bg)} .cell.c-g{background:var(--gra-bg)} .cell.c-f{background:var(--fib-bg)}
+.cell input{background:rgba(0,0,0,.25)}
+.sticky-actions{position:sticky;bottom:0;background:var(--bg);padding-top:12px;margin-top:14px;display:flex;gap:8px}
+.sticky-actions .btn{flex:1}
+.ing{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.ing select{flex:1;min-width:0}
+.ing input{width:80px;flex:none}
+.picklist{max-height:44vh;overflow:auto;display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.qty{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0}
+.note{font-size:12px;color:var(--muted);border-left:2px solid var(--line);padding-left:10px;margin:11px 0}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:10px 15px;font-size:13px;z-index:99;max-width:88vw;text-align:center}
+.back{background:none;border:none;color:var(--muted);font-size:13.5px;padding:12px 0 6px;cursor:pointer}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+        <rect x="1"  y="9"  width="4" height="12" rx="1.4" fill="#FF6B6B"/>
+        <rect x="6.3" y="5" width="4" height="16" rx="1.4" fill="#FFB020"/>
+        <rect x="11.6" y="12" width="4" height="9" rx="1.4" fill="#B77BFF"/>
+        <rect x="16.9" y="1" width="4" height="20" rx="1.4" fill="#3ECF8E"/>
+      </svg>
+      <h1>FitCoock</h1><span class="sub">comidas y macros</span>
+    </div>
+    <nav role="tablist">
+      <button role="tab" id="tab-alimentos" aria-selected="true" onclick="setTab('alimentos')"><i>🥕</i>Alimentos</button>
+      <button role="tab" id="tab-menus" aria-selected="false" onclick="setTab('menus')"><i>🍽️</i>Menús</button>
+      <button role="tab" id="tab-objetivo" aria-selected="false" onclick="setTab('objetivo')"><i>🎯</i>Objetivos</button>
+      <button role="tab" id="tab-compra" aria-selected="false" onclick="setTab('compra')"><i>🛒</i>Compra</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ================= ALIMENTOS ================= -->
+  <section id="v-alimentos">
+    <div class="row" style="margin-top:14px">
+      <input id="buscar" class="grow" placeholder="🔍  Buscar alimento o plato" oninput="renderAlimentos()">
+    </div>
+    <div class="chips">
+      <button class="chip" id="f-todos" aria-pressed="true" onclick="setFiltro('todos')">Todos</button>
+      <button class="chip" id="f-basico" aria-pressed="false" onclick="setFiltro('basico')">🥕 Productos</button>
+      <button class="chip" id="f-plato" aria-pressed="false" onclick="setFiltro('plato')">🍲 Platos</button>
+    </div>
+    <div class="chips wrapx" id="super-filtros"></div>
+    <div class="row" style="margin-bottom:12px">
+      <span class="small muted">Ordenar por</span>
+      <select id="orden" onchange="ordenAlim=this.value;renderAlimentos()">
+        <option value="nombre">Nombre</option>
+        <option value="densidad">Proteína por 100 kcal</option>
+        <option value="kcal">Calorías</option>
+        <option value="precio">Precio</option>
+      </select>
+    </div>
+    <div class="row" style="margin-bottom:13px">
+      <button class="btn grow" onclick="abrirAlimento()">＋ Producto</button>
+      <button class="btn grow" onclick="abrirPlato()">＋ Plato</button>
+    </div>
+    <div id="lista-alimentos" class="flist"></div>
+  </section>
+
+  <!-- ================= MENÚS ================= -->
+  <section id="v-menus" class="hidden">
+    <div class="seg plain" style="margin-top:14px">
+      <button id="vm-biblioteca" aria-pressed="true" onclick="setVistaMenus('biblioteca')">📖 Biblioteca</button>
+      <button id="vm-diario" aria-pressed="false" onclick="setVistaMenus('diario')">📅 Diario</button>
+      <button id="vm-semana" aria-pressed="false" onclick="setVistaMenus('semana')">📊 Semana</button>
+    </div>
+    <div id="menus-lista"></div>
+    <div id="menus-detalle" class="hidden"></div>
+    <div id="diario" class="hidden"></div>
+    <div id="semana" class="hidden"></div>
+  </section>
+
+  <!-- ================= OBJETIVOS ================= -->
+  <section id="v-objetivo" class="hidden">
+    <div class="seg" style="margin-top:14px">
+      <button data-t="entreno" id="ot-entreno" aria-pressed="true" onclick="setObjTipo('entreno')">🏋️ Entrenamiento</button>
+      <button data-t="descanso" id="ot-descanso" aria-pressed="false" onclick="setObjTipo('descanso')">🌙 Descanso</button>
+    </div>
+
+    <h2>🎯 Calorías y reparto</h2>
+    <div class="card">
+      <div class="row" style="margin-bottom:9px">
+        <div class="cell c-kcal grow">
+          <label class="f" for="o-kcal">Calorías objetivo al día</label>
+          <input id="o-kcal" inputmode="decimal" oninput="objDesdePorcentajes()">
+        </div>
+      </div>
+      <button class="btn small" style="width:100%" onclick="abrirCalculadora()">🧮 Calcular mi gasto</button>
+      <label class="f" style="margin-top:13px">Cómo defines la proteína</label>
+      <div class="seg plain" id="o-modoprot"></div>
+      <div id="o-macros" style="margin-top:10px"></div>
+      <input type="hidden" id="o-fibra">
+      <div id="o-aviso" class="small" style="margin-top:9px"></div>
+      <div id="o-gramos" style="margin-top:10px"></div>
+      <div class="note">Los gramos salen de 4 kcal/g para proteína e hidratos y 9 kcal/g para grasa (factores de Atwater). Son valores redondeados: pueden no cuadrar al decimal con las kcal de una etiqueta.</div>
+    </div>
+
+    <h2>🕐 Reparto por comida</h2>
+    <div class="card">
+      <p class="small muted" style="margin:0 0 11px">% de las calorías del día en cada comida. Aparece como referencia dentro de cada menú de este tipo.</p>
+      <div id="o-reparto"></div>
+      <div id="o-reparto-aviso" class="small" style="margin-top:7px"></div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <button class="btn grow small" onclick="copiarObjetivo()">⇄ Copiar del otro tipo de día</button>
+    </div>
+
+    <h2>💾 Datos</h2>
+    <div class="card">
+      <div class="row">
+        <button class="btn grow" onclick="exportar()">⬇ Exportar</button>
+        <button class="btn grow" onclick="document.getElementById('importar').click()">⬆ Importar</button>
+      </div>
+      <input type="file" id="importar" accept="application/json" class="hidden" onchange="importar(event)">
+      <div class="row" style="margin-top:8px">
+        <button class="btn grow" onclick="cargarEjemplos()">🧺 Productos de ejemplo</button>
+        <button class="btn danger" onclick="borrarTodo()">🗑 Borrar</button>
+      </div>
+      <div class="note">Los productos de ejemplo llevan valores orientativos de tablas genéricas. Sustitúyelos por los de la etiqueta de lo que compras.</div>
+    </div>
+  </section>
+
+  <!-- ================= LISTA DE LA COMPRA ================= -->
+  <section id="v-compra" class="hidden">
+    <h2>🍳 Qué vas a cocinar</h2>
+    <div id="compra-sel"></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn grow" onclick="abrirSelectorCompra('plato')">＋ Plato</button>
+      <button class="btn grow" onclick="abrirSelectorCompra('menu')">＋ Menú</button>
+    </div>
+    <h2>🛒 Lo que hay que comprar</h2>
+    <div id="compra-lista"></div>
+  </section>
+</main>
+
+<div id="modal-host"></div>
+<div id="toast-host"></div>
+
+<script>
+"use strict";
+
+/* ============ almacenamiento ============ */
+const KEY = "fitcoock:data";
+const Store = {
+  modo: null,          // "ws" = almacén del artefacto, "ls" = localStorage, "mem" = solo memoria
+  async get(k){
+    if (window.storage && window.storage.get){
+      try {
+        const r = await window.storage.get(k, false);
+        if (r && r.value != null) { this.modo = "ws"; return r.value; }
+      } catch(e){ /* clave inexistente o almacén no disponible */ }
+    }
+    try { const v = localStorage.getItem(k); if (v != null) return v; } catch(e){}
+    return null;
+  },
+  async set(k,v){
+    if (this.modo !== "ls" && this.modo !== "mem" && window.storage && window.storage.set){
+      try { await window.storage.set(k, v, false); this.modo = "ws"; return true; }
+      catch(e){ this.modo = "ls"; console.warn("Almacén del artefacto no disponible, se usa localStorage:", e && e.message); }
+    }
+    try { localStorage.setItem(k, v); if(this.modo!=="ws") this.modo = "ls"; return true; }
+    catch(e){ this.modo = "mem"; return false; }
+  }
+};
+
+const MEALS = [
+  {k:"desayuno", n:"Desayuno", ic:"☕", c:"var(--m-desayuno)"},
+  {k:"almuerzo", n:"Almuerzo", ic:"🥪", c:"var(--m-almuerzo)"},
+  {k:"comida",   n:"Comida",   ic:"🍽️", c:"var(--m-comida)"},
+  {k:"merienda", n:"Merienda", ic:"🍏", c:"var(--m-merienda)"},
+  {k:"cena",     n:"Cena",     ic:"🌙", c:"var(--m-cena)"}
+];
+const TIPOS = {entreno:{n:"Entrenamiento", ic:"🏋️"}, descanso:{n:"Descanso", ic:"🌙"}};
+
+/* Supermercados. Para añadir uno nuevo basta con una línea más aquí. */
+const SUPERS = [
+  {k:"generico",  n:"Genérico",  ic:"🍎", c:"#7C8B99"},
+  {k:"mercadona", n:"Mercadona", ic:"🛒", c:"#2E9E4F"},
+  {k:"dia",       n:"Día",       ic:"🛒", c:"#E4322B"},
+  {k:"lidl",      n:"Lidl",      ic:"🛒", c:"#F0C419"},
+  {k:"carrefour", n:"Carrefour", ic:"🛒", c:"#2E6BD1"},
+  {k:"aldi",      n:"Aldi",      ic:"🛒", c:"#F0851F"},
+  {k:"decathlon", n:"Decathlon", ic:"🏃", c:"#0082C3"},
+  {k:"hsn",       n:"HSN",       ic:"🥤", c:"#8CC63F"}
+];
+function sup(k){ return SUPERS.find(s=>s.k===k) || SUPERS[0]; }
+function tint(hex, a){
+  const n = parseInt(hex.slice(1),16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+
+function objetivoPorDefecto(){
+  return {kcal:2200, pProt:40, pHid:40, pGra:20, fibra:30, modoProt:"pct", protGkg:2,
+          reparto:{desayuno:20, almuerzo:10, comida:30, merienda:10, cena:30}};
+}
+
+let DB = {
+  v:6,
+  meta: {desdeExport:0, ultimaExport:null},
+  perfil: {sexo:"h", edad:null, altura:null, peso:null, actividad:1.55},
+  alimentos: [],
+  menus: [],
+  diario: {},
+  compra: {items:[], marcados:[]},
+  objetivos: {entreno:objetivoPorDefecto(), descanso:objetivoPorDefecto()}
+};
+
+let filtro = "todos";
+let ordenAlim = "nombre";
+let filtroSuper = "todos";
+let filtroMenu = "todos";
+let vistaMenus = "biblioteca";
+let fechaDiario = todayISO();
+let lunesSemana = lunesDe(todayISO());
+let menuAbierto = null;
+let objTipo = "entreno";
+let saveTimer = null;
+let avisadoSinGuardado = false;
+
+function guardar(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    Object.keys(DB.diario).forEach(f=>{
+      if(f===fechaDiario) return;
+      const dd = DB.diario[f];
+      if(!dd || !MEALS.some(x=>(dd.comidas[x.k]||[]).length)) delete DB.diario[f];
+    });
+    const ok = await Store.set(KEY, JSON.stringify(DB));
+    if(!ok && !avisadoSinGuardado){
+      avisadoSinGuardado = true;
+      toast("No se puede guardar en este navegador. Exporta una copia antes de cerrar.");
+    }
+  }, 250);
+}
+
+/* ============ utilidades ============ */
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function todayISO(){ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+function fechaLarga(iso){
+  const [y,m,d] = iso.split("-").map(Number);
+  const s = new Date(y,m-1,d).toLocaleDateString("es-ES",{weekday:"long", day:"numeric", month:"long"});
+  return s.charAt(0).toUpperCase()+s.slice(1);
+}
+function fechaCorta(iso){
+  const [y,m,d] = iso.split("-").map(Number);
+  const s = new Date(y,m-1,d).toLocaleDateString("es-ES",{weekday:"short", day:"numeric", month:"short"});
+  return s.charAt(0).toUpperCase()+s.slice(1);
+}
+function num(v){ if(typeof v==="number") return v; const n=parseFloat(String(v==null?"":v).replace(",",".")); return isNaN(n)?0:n; }
+function f1(n){ return (Math.round(n*10)/10).toLocaleString("es-ES",{minimumFractionDigits:0,maximumFractionDigits:1}); }
+function f0(n){ return Math.round(n).toLocaleString("es-ES"); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function byId(id){ return DB.alimentos.find(a=>a.id===id) || null; }
+function menuById(id){ return DB.menus.find(m=>m.id===id) || null; }
+function meal(k){ return MEALS.find(m=>m.k===k); }
+/* unidad de medida del producto: g o ml */
+function uni(a){ return a && a.unidad==="ml" ? "ml" : "g"; }
+function uniGrande(u){ return u==="ml" ? "L" : "kg"; }
+function cantidadTexto(v, u){
+  u = u || "g";
+  return v >= 1000 ? f1(v/1000)+" "+uniGrande(u) : f0(v)+" "+u;
+}
+function eur(n){ return n.toLocaleString("es-ES",{minimumFractionDigits:2, maximumFractionDigits:2})+" €"; }
+function coste(a, g){ return num(a && a.precio) > 0 ? num(a.precio)*g/1000 : 0; }
+function densidad(a){ return num(a.kcal) > 0 ? num(a.prot)/num(a.kcal)*100 : 0; }
+/* comparación de nombres para detectar duplicados */
+function clave(s){
+  return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+}
+function distancia(a,b){
+  if(a===b) return 0;
+  const m=a.length, n=b.length;
+  if(Math.abs(m-n)>3) return 99;
+  const d = Array.from({length:m+1},(_,i)=>[i].concat(new Array(n).fill(0)));
+  for(let j=0;j<=n;j++) d[0][j]=j;
+  for(let i=1;i<=m;i++) for(let j=1;j<=n;j++)
+    d[i][j] = Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return d[m][n];
+}
+function parecidos(nombre, excluirId){
+  const k = clave(nombre);
+  if(!k) return [];
+  return DB.alimentos.filter(a=>{
+    if(a.id===excluirId) return false;
+    const ka = clave(a.nombre);
+    return ka===k || distancia(ka,k)<=2 || (ka.length>4 && k.length>4 && (ka.includes(k)||k.includes(ka)));
+  });
+}
+function toast(msg){
+  const h=document.getElementById("toast-host");
+  h.innerHTML = '<div class="toast">'+esc(msg)+'</div>';
+  setTimeout(()=>{h.innerHTML="";}, 2400);
+}
+/* el distintivo del producto toma el color de su supermercado */
+function badgeProducto(a){
+  const s = sup(a.super);
+  return `<span class="badge" style="background:${tint(s.c,.18)};color:${s.c}">${esc((a.nombre||"?").trim().charAt(0).toUpperCase())}</span>`;
+}
+function badgePlato(){ return `<span class="badge" style="background:rgba(255,138,61,.16)">🍲</span>`; }
+function badgeDe(a){ return a.tipo==="plato" ? badgePlato() : badgeProducto(a); }
+function tagSuper(a){
+  if(a.tipo==="plato") return "";
+  const s = sup(a.super);
+  return `<span class="tag" style="color:${s.c};background:${tint(s.c,.14)}">${s.ic} ${esc(s.n)}</span>`;
+}
+function pills(m, conFibra){
+  return `<span class="mps">
+    <span class="mp p">P ${f1(m.prot)}</span>
+    <span class="mp h">H ${f1(m.hid)}</span>
+    <span class="mp g">G ${f1(m.gra)}</span>
+    ${conFibra?`<span class="mp f">F ${f1(m.fib)}</span>`:""}</span>`;
+}
+
+/* ============ cálculo ============ */
+const CEROS = {kcal:0, gra:0, hid:0, prot:0, fib:0};
+function sumar(a,b){ return {kcal:a.kcal+b.kcal, gra:a.gra+b.gra, hid:a.hid+b.hid, prot:a.prot+b.prot, fib:a.fib+b.fib}; }
+function macrosDe(alimento, gramos){
+  const f = num(gramos)/100;
+  return {kcal:alimento.kcal*f, gra:alimento.gra*f, hid:alimento.hid*f, prot:alimento.prot*f, fib:alimento.fib*f};
+}
+/* un item puede ser {id, g} de la base de datos, o un apunte libre con sus valores ya totales */
+function macrosItem(it){
+  if(it && it.libre) return {kcal:num(it.kcal), gra:num(it.gra), hid:num(it.hid), prot:num(it.prot), fib:num(it.fib)};
+  const a = it ? byId(it.id) : null;
+  return a ? macrosDe(a, it.g) : null;
+}
+function totalItems(items){
+  return (items||[]).reduce((acc,it)=>{
+    const m = macrosItem(it);
+    return m ? sumar(acc, m) : acc;
+  }, Object.assign({},CEROS));
+}
+function totalMenu(m){
+  return MEALS.reduce((acc,x)=> sumar(acc, totalItems(m.comidas[x.k])), Object.assign({},CEROS));
+}
+function normalizarMenu(m){
+  if(!m.comidas) m.comidas = {};
+  MEALS.forEach(x=>{ if(!Array.isArray(m.comidas[x.k])) m.comidas[x.k]=[]; });
+  if(!TIPOS[m.tipo]) m.tipo = "entreno";
+  return m;
+}
+function recalcPlatos(){
+  for(let pass=0; pass<6; pass++){
+    let cambio=false;
+    DB.alimentos.filter(a=>a.tipo==="plato").forEach(p=>{
+      let t = Object.assign({},CEROS), cost = 0, faltaPrecio = false, cocinado = 0;
+      (p.ingredientes||[]).forEach(ing=>{
+        const a = byId(ing.id);
+        if(!a) return;
+        t = sumar(t, macrosDe(a, ing.g));
+        if(num(a.precio) > 0) cost += coste(a, num(ing.g)); else faltaPrecio = true;
+        cocinado += num(ing.g) * (num(a.factor) > 0 ? num(a.factor) : 1);
+      });
+      const peso = num(p.pesoFinal) > 0 ? num(p.pesoFinal) : cocinado;
+      const f = peso>0 ? 100/peso : 0;
+      const nuevo = {kcal:t.kcal*f, gra:t.gra*f, hid:t.hid*f, prot:t.prot*f, fib:t.fib*f};
+      ["kcal","gra","hid","prot","fib"].forEach(k=>{
+        if(Math.abs((p[k]||0)-nuevo[k])>0.0001){ p[k]=nuevo[k]; cambio=true; }
+      });
+      p.pesoTotal = peso;
+      p.pesoCocinado = cocinado;
+      p.precio = peso>0 && cost>0 ? cost/peso*1000 : 0;
+      p.precioIncompleto = faltaPrecio;
+    });
+    if(!cambio) break;
+  }
+}
+function dependeDe(id, target, visto){
+  visto = visto || new Set();
+  if(id===target) return true;
+  if(visto.has(id)) return false;
+  visto.add(id);
+  const a = byId(id);
+  if(!a || a.tipo!=="plato") return false;
+  return (a.ingredientes||[]).some(i=>dependeDe(i.id, target, visto));
+}
+
+/* ============ objetivos ============ */
+function obj(tipo){ return DB.objetivos[tipo] || DB.objetivos.entreno; }
+function objetivoGramos(tipo){
+  const o = obj(tipo);
+  const kcal = num(o.kcal);
+  const prot = o.modoProt==="gkg"
+    ? num(DB.perfil.peso) * num(o.protGkg)
+    : kcal * num(o.pProt)/100/4;
+  const resto = Math.max(0, kcal - prot*4);
+  const sumaHG = num(o.pHid) + num(o.pGra);
+  const rH = sumaHG > 0 ? num(o.pHid)/sumaHG : 0.6;
+  return {
+    kcal: kcal,
+    prot: prot,
+    hid:  resto*rH/4,
+    gra:  resto*(1-rH)/9,
+    fib:  num(o.fibra)
+  };
+}
+/* Mifflin-St Jeor: estimación del gasto, no una medida */
+function mifflin(sexo, peso, altura, edad){
+  const base = 10*num(peso) + 6.25*num(altura) - 5*num(edad);
+  return base + (sexo==="m" ? -161 : 5);
+}
+const ACTIVIDAD = [
+  {k:1.2,   n:"Sedentario"},
+  {k:1.375, n:"Ligero (1-3 días)"},
+  {k:1.55,  n:"Moderado (3-5 días)"},
+  {k:1.725, n:"Alto (6-7 días)"},
+  {k:1.9,   n:"Muy alto"}
+];
+
+/* ============ navegación ============ */
+function setTab(t){
+  ["alimentos","menus","objetivo","compra"].forEach(x=>{
+    document.getElementById("v-"+x).classList.toggle("hidden", x!==t);
+    document.getElementById("tab-"+x).setAttribute("aria-selected", String(x===t));
+  });
+  if(t==="menus") renderMenus();
+  if(t==="objetivo") renderObjetivo();
+  if(t==="alimentos") renderAlimentos();
+  if(t==="compra") renderCompra();
+  window.scrollTo(0,0);
+}
+function setFiltro(f){
+  filtro=f;
+  ["todos","basico","plato"].forEach(x=>document.getElementById("f-"+x).setAttribute("aria-pressed", String(x===f)));
+  renderAlimentos();
+}
+
+/* ============ render: alimentos ============ */
+function setFiltroSuper(k){ filtroSuper=k; renderAlimentos(); }
+function renderFiltrosSuper(){
+  document.getElementById("super-filtros").innerHTML =
+    `<button class="chip" aria-pressed="${filtroSuper==="todos"}" onclick="setFiltroSuper('todos')">Cualquier sitio</button>` +
+    SUPERS.map(s=>{
+      const on = filtroSuper===s.k;
+      return `<button class="chip" aria-pressed="${on}" onclick="setFiltroSuper('${s.k}')"
+        style="${on?`color:${s.c};background:${tint(s.c,.14)};border-color:transparent`:""}">${s.ic} ${esc(s.n)}</button>`;
+    }).join("");
+}
+function renderAlimentos(){
+  renderFiltrosSuper();
+  const q = (document.getElementById("buscar").value||"").trim().toLowerCase();
+  const cont = document.getElementById("lista-alimentos");
+  let lista = DB.alimentos.slice();
+  if(filtro!=="todos") lista = lista.filter(a=>a.tipo===filtro);
+  if(filtroSuper!=="todos") lista = lista.filter(a=>a.tipo!=="plato" && (a.super||"generico")===filtroSuper);
+  if(q) lista = lista.filter(a=>a.nombre.toLowerCase().includes(q) || (a.tipo!=="plato" && sup(a.super).n.toLowerCase().includes(q)));
+
+  if(ordenAlim==="densidad") lista.sort((a,b)=>densidad(b)-densidad(a));
+  else if(ordenAlim==="kcal") lista.sort((a,b)=>num(b.kcal)-num(a.kcal));
+  else if(ordenAlim==="precio") lista.sort((a,b)=>(num(a.precio)||1e9)-(num(b.precio)||1e9));
+  else lista.sort((a,b)=>a.nombre.localeCompare(b.nombre,"es"));
+
+  if(!lista.length){
+    cont.innerHTML = DB.alimentos.length
+      ? '<div class="empty"><span class="big">🔍</span>Nada coincide con los filtros.</div>'
+      : '<div class="empty"><span class="big">🥕</span>Aún no hay nada. Empieza creando un producto con los valores de su etiqueta.</div>';
+    return;
+  }
+  cont.innerHTML = lista.map(a=>{
+    const u = a.tipo==="plato" ? "g" : uni(a);
+    const extras = [];
+    if(ordenAlim==="densidad" && num(a.kcal)>0) extras.push(`<span class="mp p">${f1(densidad(a))} g prot/100 kcal</span>`);
+    if(num(a.precio)>0) extras.push(`<span class="mp" style="color:var(--muted);background:var(--surface2)">${eur(num(a.precio))}/${uniGrande(u)}</span>`);
+    return `
+    <button class="fitem" onclick="${a.tipo==='plato'?`abrirPlato('${a.id}')`:`abrirAlimento('${a.id}')`}">
+      ${badgeDe(a)}
+      <span class="grow">
+        <span class="nm">${esc(a.nombre)}${a.tipo==='plato'?'<span class="tag plato">plato</span>':tagSuper(a)}</span>
+        ${pills({prot:a.prot,hid:a.hid,gra:a.gra,fib:a.fib}, true)}
+        ${extras.length?`<span class="mps">${extras.join("")}</span>`:""}
+      </span>
+      <span class="kcalbig num">${f0(a.kcal)}<small>kcal/100 ${u}</small></span>
+    </button>`;
+  }).join("");
+}
+
+/* ============ modal genérico ============ */
+function cerrarModal(){ if(typeof pararCamara==="function") pararCamara(); document.getElementById("modal-host").innerHTML=""; }
+function modal(html){
+  document.getElementById("modal-host").innerHTML =
+    '<div class="modal" onclick="if(event.target===this)cerrarModal()"><div class="sheet">'+html+'</div></div>';
+}
+
+/* ============ producto ============ */
+function abrirAlimento(id, pre){
+  const a = id ? byId(id) : null;
+  const v = pre || (a ? {nombre:a.nombre, kcal:a.kcal, prot:a.prot, hid:a.hid, gra:a.gra, fib:a.fib,
+                         super:a.super, unidad:uni(a), precio:a.precio||"", factor:a.factor||""}
+                      : {nombre:"", kcal:"", prot:"", hid:"", gra:"", fib:"", super:"generico", unidad:"g", precio:"", factor:""});
+  modal(`
+    <h3>🥕 ${a?"Editar producto":"Nuevo producto"}</h3>
+    <div class="row" style="margin-bottom:12px">
+      <button class="btn small grow" onclick="abrirPegarEtiqueta(${a?`'${a.id}'`:"null"})">📋 Pegar etiqueta</button>
+      <button class="btn small grow" onclick="abrirCodigo(${a?`'${a.id}'`:"null"})">🔎 Código</button>
+      ${a?`<button class="btn small" onclick="duplicarProducto('${a.id}')" title="Duplicar">⧉</button>`:""}
+    </div>
+    <label class="f" for="a-nombre">Nombre</label>
+    <input id="a-nombre" value="${esc(v.nombre)}" placeholder="Pechuga de pollo">
+    <label class="f" style="margin-top:13px">Dónde se compra</label>
+    <div class="supsel" id="a-super"></div>
+    <div class="grid5" style="margin-top:13px">
+      <div>
+        <label class="f">Se mide en</label>
+        <div class="seg plain" id="a-unidad"></div>
+      </div>
+      <div><label class="f" for="a-precio"><span id="a-precio-lb">Precio €/kg</span></label>
+        <input id="a-precio" inputmode="decimal" value="${v.precio}" placeholder="opcional"></div>
+    </div>
+    <label class="f" style="margin-top:10px" for="a-factor">Factor de cocción — opcional (arroz ≈ 2,5; pasta ≈ 2,2)</label>
+    <input id="a-factor" inputmode="decimal" value="${v.factor}" placeholder="1">
+    <p class="small muted" style="margin:13px 0 9px">Valores por 100 <span id="a-u1">${v.unidad}</span>, tal y como vienen en la etiqueta.</p>
+    <div class="cell c-kcal" style="margin-bottom:9px">
+      <label class="f" for="a-kcal">Calorías</label><input id="a-kcal" inputmode="decimal" value="${v.kcal}">
+    </div>
+    <div class="grid5">
+      <div class="cell c-p"><label class="f" for="a-prot">🔴 Proteínas g</label><input id="a-prot" inputmode="decimal" value="${v.prot}"></div>
+      <div class="cell c-h"><label class="f" for="a-hid">🟡 Hidratos g</label><input id="a-hid" inputmode="decimal" value="${v.hid}"></div>
+      <div class="cell c-g"><label class="f" for="a-gra">🟣 Grasas g</label><input id="a-gra" inputmode="decimal" value="${v.gra}"></div>
+      <div class="cell c-f"><label class="f" for="a-fib">🟢 Fibra g</label><input id="a-fib" inputmode="decimal" value="${v.fib}"></div>
+    </div>
+    <div class="sticky-actions">
+      ${a?`<button class="btn danger" onclick="borrarAlimento('${a.id}')">🗑</button>`:""}
+      <button class="btn ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn primary" onclick="guardarAlimento(${a?`'${a.id}'`:"null"})">Guardar</button>
+    </div>`);
+  superTmp = v.super || "generico";
+  unidadTmp = v.unidad || "g";
+  pintarSuperSel(); pintarUnidad();
+  setTimeout(()=>document.getElementById("a-nombre").focus(),50);
+}
+let unidadTmp = "g";
+function setUnidad(u){ unidadTmp = u; pintarUnidad(); }
+function pintarUnidad(){
+  const c = document.getElementById("a-unidad"); if(!c) return;
+  c.innerHTML = ["g","ml"].map(u=>`<button aria-pressed="${unidadTmp===u}" onclick="setUnidad('${u}')">${u}</button>`).join("");
+  document.getElementById("a-precio-lb").textContent = "Precio €/"+uniGrande(unidadTmp);
+  document.getElementById("a-u1").textContent = unidadTmp;
+}
+function duplicarProducto(id){
+  const a = byId(id); if(!a) return;
+  abrirAlimento(null, {nombre:a.nombre+" (copia)", kcal:a.kcal, prot:a.prot, hid:a.hid, gra:a.gra, fib:a.fib,
+                       super:a.super, unidad:uni(a), precio:a.precio||"", factor:a.factor||""});
+  toast("Copia lista, cámbiale lo que difiera");
+}
+/* lo que hay escrito ahora en el formulario, para no perderlo al abrir otra hoja */
+function leerFormAlimento(){
+  const g = i => { const e=document.getElementById(i); return e ? e.value : ""; };
+  return {nombre:g("a-nombre"), kcal:g("a-kcal"), prot:g("a-prot"), hid:g("a-hid"), gra:g("a-gra"), fib:g("a-fib"),
+          super:superTmp, unidad:unidadTmp, precio:g("a-precio"), factor:g("a-factor")};
+}
+let superTmp = "generico";
+function setSuperTmp(k){ superTmp = k; pintarSuperSel(); }
+function pintarSuperSel(){
+  const cont = document.getElementById("a-super"); if(!cont) return;
+  cont.innerHTML = SUPERS.map(s=>{
+    const on = superTmp===s.k;
+    return `<button onclick="setSuperTmp('${s.k}')" aria-pressed="${on}"
+      style="${on?`color:${s.c};background:${tint(s.c,.16)};border-color:${tint(s.c,.5)};font-weight:600`:""}">${s.ic} ${esc(s.n)}</button>`;
+  }).join("");
+}
+function guardarAlimento(id){
+  const nombre = document.getElementById("a-nombre").value.trim();
+  if(!nombre){ toast("Ponle un nombre al producto"); return; }
+  const datos = {
+    nombre,
+    super: superTmp,
+    unidad: unidadTmp,
+    precio: num(document.getElementById("a-precio").value),
+    factor: num(document.getElementById("a-factor").value),
+    kcal:num(document.getElementById("a-kcal").value),
+    prot:num(document.getElementById("a-prot").value),
+    hid:num(document.getElementById("a-hid").value),
+    gra:num(document.getElementById("a-gra").value),
+    fib:num(document.getElementById("a-fib").value)
+  };
+  // nombres parecidos: solo al crear
+  if(!id){
+    const iguales = parecidos(nombre, null);
+    if(iguales.length && !confirm("Ya tienes «"+iguales[0].nombre+"», que se parece mucho.\n¿Crear otro producto de todas formas?")) return;
+  }
+  // coherencia entre las kcal escritas y las que salen de los macros
+  const calc = datos.prot*4 + datos.hid*4 + datos.gra*9 + datos.fib*2;
+  const desvio = Math.abs(calc - datos.kcal);
+  if(datos.kcal > 0 && calc > 0 && desvio > Math.max(15, datos.kcal*0.12)){
+    if(!confirm("Las calorías no cuadran con los macros.\n\nHas escrito "+f0(datos.kcal)+" kcal.\nDe los macros salen unas "+f0(calc)+" kcal (4/4/9 y 2 por la fibra).\n\nSuele ser un dedazo. ¿Guardar igualmente?")) return;
+  }
+  if(id){ Object.assign(byId(id), datos); }
+  else { DB.alimentos.push(Object.assign({id:uid(), tipo:"basico"}, datos)); }
+  recalcPlatos(); guardar(); cerrarModal(); renderAlimentos();
+  toast(id?"Producto actualizado":"Producto añadido");
+}
+function borrarAlimento(id){
+  const usado = DB.alimentos.some(p=>p.tipo==="plato" && (p.ingredientes||[]).some(i=>i.id===id));
+  const enMenus = DB.menus.concat(Object.values(DB.diario)).some(m=>MEALS.some(x=>(m.comidas[x.k]||[]).some(i=>!i.libre && i.id===id)));
+  let aviso = "¿Borrar este alimento?";
+  if(usado||enMenus) aviso += "\nSe usa en " + [usado?"algún plato":null, enMenus?"algún menú":null].filter(Boolean).join(" y ") + ", donde dejará de contar.";
+  if(!confirm(aviso)) return;
+  DB.alimentos = DB.alimentos.filter(a=>a.id!==id);
+  DB.alimentos.forEach(p=>{ if(p.tipo==="plato") p.ingredientes=(p.ingredientes||[]).filter(i=>i.id!==id); });
+  DB.menus.forEach(m=>MEALS.forEach(x=>{ m.comidas[x.k]=(m.comidas[x.k]||[]).filter(i=>i.libre||i.id!==id); }));
+  Object.values(DB.diario).forEach(m=>MEALS.forEach(x=>{ m.comidas[x.k]=(m.comidas[x.k]||[]).filter(i=>i.libre||i.id!==id); }));
+  recalcPlatos(); guardar(); cerrarModal(); renderAlimentos(); toast("Borrado");
+}
+
+/* ============ altas rápidas: etiqueta pegada y código de barras ============ */
+let pendiente = null;   // {id, datos} del formulario mientras se usa una hoja auxiliar
+
+function numES(s){
+  s = String(s).trim();
+  if(/^\d{1,3}(\.\d{3})+$/.test(s)) return parseFloat(s.replace(/\./g,""));
+  return parseFloat(s.replace(",","."));
+}
+/* primer número que aparece detrás de una palabra clave */
+function trasClave(t, re){
+  const m = re.exec(t);
+  if(!m) return null;
+  const desde = m.index + m[0].length;
+  const resto = t.slice(desde, desde+90);
+  const mn = /(\d{1,3}(?:\.\d{3})+|\d+(?:[.,]\d+)?)/.exec(resto);
+  if(!mn) return null;
+  const hueco = resto.slice(0, mn.index);
+  return {v:numES(mn[1]), dudoso:/cuales|saturad|az[uú]car|polialcohol|mono|poliinsat/.test(hueco)};
+}
+function analizarEtiqueta(txt){
+  const t = txt.toLowerCase().replace(/\s+/g," ");
+  const r = {};
+  const kcal = /(\d{1,3}(?:\.\d{3})+|\d+(?:[.,]\d+)?)\s*kcal/.exec(t);
+  if(kcal) r.kcal = {v:numES(kcal[1]), dudoso:false};
+  else {
+    const kj = /(\d{1,3}(?:\.\d{3})+|\d+(?:[.,]\d+)?)\s*kj/.exec(t);
+    if(kj) r.kcal = {v:Math.round(numES(kj[1])/4.184*10)/10, dudoso:true};
+  }
+  r.gra  = trasClave(t, /grasas?/);
+  r.hid  = trasClave(t, /hidratos de carbono|carbohidratos/);
+  r.fib  = trasClave(t, /fibra/);
+  r.prot = trasClave(t, /prote[ií]nas?/);
+  return r;
+}
+function abrirPegarEtiqueta(id){
+  pendiente = {id, datos: leerFormAlimento()};
+  modal(`
+    <h3>📋 Pegar etiqueta</h3>
+    <p class="small muted" style="margin:0 0 10px">Pega el texto de la información nutricional (de la web del súper, o dictado con el teclado). Funciona sin conexión.</p>
+    <textarea id="et-txt" rows="7" placeholder="Valor energético 1.550 kJ / 370 kcal&#10;Grasas 12 g, de las cuales saturadas 2 g&#10;Hidratos de carbono 60 g&#10;Fibra alimentaria 5 g&#10;Proteínas 12 g"></textarea>
+    <button class="btn primary" style="width:100%;margin-top:10px" onclick="previsualizarEtiqueta()">Analizar</button>
+    <div id="et-prev"></div>`);
+  setTimeout(()=>document.getElementById("et-txt").focus(),50);
+}
+function previsualizarEtiqueta(){
+  const r = analizarEtiqueta(document.getElementById("et-txt").value||"");
+  etiquetaTmp = r;
+  const fila = (k,n,u)=>{
+    const d = r[k];
+    return `<div class="row" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line-soft)">
+      <span class="small">${n}</span>
+      ${d ? `<b class="num">${f1(d.v)} ${u}${d.dudoso?' <span class="small" style="color:var(--hid)">⚠ revisar</span>':""}</b>`
+          : '<span class="small muted">no detectado</span>'}</div>`;
+  };
+  document.getElementById("et-prev").innerHTML = `
+    <div class="card" style="margin-top:12px">
+      ${fila("kcal","Calorías","kcal")}${fila("prot","Proteínas","g")}${fila("hid","Hidratos","g")}
+      ${fila("gra","Grasas","g")}${fila("fib","Fibra","g")}
+      <p class="small muted" style="margin:10px 0 0">Compruébalo contra la etiqueta antes de guardar. Lo marcado con ⚠ puede haber cogido el valor de una línea del tipo «de las cuales».</p>
+    </div>
+    <div class="sticky-actions">
+      <button class="btn ghost" onclick="abrirAlimento(pendiente.id, pendiente.datos)">Volver</button>
+      <button class="btn primary" onclick="aplicarEtiqueta()">Usar estos valores</button>
+    </div>`;
+}
+let etiquetaTmp = null;
+function aplicarEtiqueta(){
+  const d = Object.assign({}, pendiente.datos);
+  ["kcal","prot","hid","gra","fib"].forEach(k=>{ if(etiquetaTmp[k]) d[k] = etiquetaTmp[k].v; });
+  abrirAlimento(pendiente.id, d);
+  toast("Valores volcados, revísalos");
+}
+
+/* --- código de barras (Open Food Facts) --- */
+let camStream = null;
+function pararCamara(){
+  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream = null; }
+}
+function abrirCodigo(id){
+  pendiente = {id, datos: leerFormAlimento()};
+  const hayCam = ("BarcodeDetector" in window) && navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+  modal(`
+    <h3>🔎 Código de barras</h3>
+    <p class="small muted" style="margin:0 0 10px">Consulta Open Food Facts, una base de datos abierta mantenida por usuarios. Necesita conexión y los valores hay que contrastarlos con la etiqueta.</p>
+    <label class="f" for="cb-num">Número del código</label>
+    <input id="cb-num" inputmode="numeric" placeholder="8480000000000">
+    ${hayCam ? `<button class="btn" style="width:100%;margin-top:9px" onclick="escanear()">📷 Escanear con la cámara</button>
+                <video id="cb-video" playsinline muted class="hidden" style="width:100%;border-radius:10px;margin-top:9px"></video>`
+             : `<p class="small muted" style="margin-top:9px">Este navegador no permite escanear con la cámara; teclea el número. En Chrome para Android sí funciona.</p>`}
+    <button class="btn primary" style="width:100%;margin-top:9px" onclick="buscarCodigo()">Buscar</button>
+    <div id="cb-res"></div>
+    <div class="sticky-actions">
+      <button class="btn ghost" onclick="pararCamara();abrirAlimento(pendiente.id, pendiente.datos)">Volver</button>
+    </div>`);
+  setTimeout(()=>document.getElementById("cb-num").focus(),50);
+}
+async function escanear(){
+  try{
+    const video = document.getElementById("cb-video");
+    const det = new window.BarcodeDetector({formats:["ean_13","ean_8","upc_a","upc_e"]});
+    camStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+    video.srcObject = camStream; video.classList.remove("hidden");
+    await video.play();
+    const tic = setInterval(async ()=>{
+      if(!camStream){ clearInterval(tic); return; }
+      try{
+        const cods = await det.detect(video);
+        if(cods.length){
+          clearInterval(tic); pararCamara(); video.classList.add("hidden");
+          document.getElementById("cb-num").value = cods[0].rawValue;
+          buscarCodigo();
+        }
+      }catch(e){}
+    }, 350);
+  }catch(e){ toast("No se ha podido abrir la cámara"); }
+}
+let offTmp = null;
+async function buscarCodigo(){
+  const cod = (document.getElementById("cb-num").value||"").replace(/\D/g,"");
+  const res = document.getElementById("cb-res");
+  if(cod.length < 6){ res.innerHTML = '<p class="small" style="color:var(--hid)">Escribe el número completo.</p>'; return; }
+  res.innerHTML = '<p class="small muted" style="margin-top:12px">Buscando…</p>';
+  try{
+    const r = await fetch("https://world.openfoodfacts.org/api/v2/product/"+cod+".json?fields=product_name,brands,nutriments");
+    const j = await r.json();
+    if(!j || j.status === 0 || !j.product){
+      res.innerHTML = '<p class="small muted" style="margin-top:12px">Ese código no está en la base. Métele los datos a mano o prueba con «Pegar etiqueta».</p>';
+      return;
+    }
+    const n = j.product.nutriments || {};
+    let kcal = n["energy-kcal_100g"];
+    if(kcal == null && n["energy-kj_100g"] != null) kcal = Math.round(n["energy-kj_100g"]/4.184*10)/10;
+    offTmp = {
+      nombre: [j.product.product_name, j.product.brands].filter(Boolean).join(" · "),
+      kcal: kcal, prot: n.proteins_100g, hid: n.carbohydrates_100g, gra: n.fat_100g, fib: n.fiber_100g
+    };
+    const fila = (n2,v,u)=>`<div class="row" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line-soft)">
+      <span class="small">${n2}</span>${v!=null?`<b class="num">${f1(v)} ${u}</b>`:'<span class="small muted">sin dato</span>'}</div>`;
+    res.innerHTML = `
+      <div class="card" style="margin-top:12px">
+        <b>${esc(offTmp.nombre||"Sin nombre")}</b>
+        <div style="margin-top:8px">
+          ${fila("Calorías",offTmp.kcal,"kcal")}${fila("Proteínas",offTmp.prot,"g")}${fila("Hidratos",offTmp.hid,"g")}
+          ${fila("Grasas",offTmp.gra,"g")}${fila("Fibra",offTmp.fib,"g")}
+        </div>
+        <p class="small muted" style="margin:10px 0 0">Datos de Open Food Facts por 100 g. Los sube la gente, así que pueden estar incompletos o desactualizados: contrástalos con el envase.</p>
+        <button class="btn primary" style="width:100%;margin-top:10px" onclick="aplicarCodigo()">Usar estos valores</button>
+      </div>`;
+  }catch(e){
+    res.innerHTML = '<p class="small" style="color:var(--hid);margin-top:12px">No se ha podido consultar. Puede ser falta de conexión o que el navegador bloquee la petición.</p>';
+  }
+}
+function aplicarCodigo(){
+  pararCamara();
+  const d = Object.assign({}, pendiente.datos);
+  if(!String(d.nombre||"").trim() && offTmp.nombre) d.nombre = offTmp.nombre;
+  ["kcal","prot","hid","gra","fib"].forEach(k=>{ if(offTmp[k] != null) d[k] = offTmp[k]; });
+  abrirAlimento(pendiente.id, d);
+  toast("Valores volcados, revísalos");
+}
+
+/* ============ plato ============ */
+let platoTmp = null;
+function abrirPlato(id){
+  const p = id ? byId(id) : null;
+  platoTmp = p
+    ? {id:p.id, nombre:p.nombre, ingredientes:(p.ingredientes||[]).map(i=>({id:i.id,g:i.g})), pesoFinal:p.pesoFinal||"", raciones:p.raciones||1}
+    : {id:null, nombre:"", ingredientes:[{id:"",g:""}], pesoFinal:"", raciones:1};
+  modal(`
+    <h3>🍲 ${p?"Editar plato":"Nuevo plato"}</h3>
+    <label class="f" for="p-nombre">Nombre del plato</label>
+    <input id="p-nombre" value="${esc(platoTmp.nombre)}" placeholder="Pollo con arroz" oninput="platoTmp.nombre=this.value">
+    <h2 style="margin:17px 0 7px">🥄 Ingredientes</h2>
+    <div id="p-ings"></div>
+    <button class="btn small" onclick="addIng()">＋ Ingrediente</button>
+    <div class="grid5" style="margin-top:14px">
+      <div>
+        <label class="f" for="p-peso">⚖️ Peso cocinado (g)</label>
+        <input id="p-peso" inputmode="decimal" value="${platoTmp.pesoFinal}" oninput="platoTmp.pesoFinal=this.value;pintarPlato()">
+      </div>
+      <div>
+        <label class="f" for="p-rac">🍴 Raciones</label>
+        <input id="p-rac" inputmode="decimal" value="${platoTmp.raciones}" oninput="platoTmp.raciones=this.value;pintarPlato()">
+      </div>
+    </div>
+    <p class="small muted" style="margin:7px 0 0">Si lo dejas vacío se usa la suma en crudo. Pésalo tras cocinar si pierde o gana agua: cambia los valores por 100 g.</p>
+    <div class="card" id="p-preview" style="margin-top:14px"></div>
+    <div class="sticky-actions">
+      ${p?`<button class="btn danger" onclick="borrarAlimento('${p.id}')">🗑</button>`:""}
+      <button class="btn ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn primary" onclick="guardarPlato()">Guardar</button>
+    </div>`);
+  pintarIngs(); pintarPlato();
+}
+function opcionesIng(sel){
+  const excl = platoTmp.id;
+  return DB.alimentos
+    .filter(a=> !excl || !dependeDe(a.id, excl))
+    .sort((a,b)=>a.nombre.localeCompare(b.nombre,"es"))
+    .map(a=>`<option value="${a.id}" ${a.id===sel?"selected":""}>${esc(a.nombre)}${a.tipo==="plato"?" (plato)":""}</option>`)
+    .join("");
+}
+function pintarIngs(){
+  document.getElementById("p-ings").innerHTML = platoTmp.ingredientes.map((ing,i)=>{
+    const a = byId(ing.id);
+    return `
+    <div class="ing">
+      <select onchange="platoTmp.ingredientes[${i}].id=this.value;pintarIngs();pintarPlato()">
+        <option value="">— elegir —</option>${opcionesIng(ing.id)}
+      </select>
+      <input inputmode="decimal" placeholder="${a?uni(a):"g"}" value="${ing.g}" oninput="platoTmp.ingredientes[${i}].g=this.value;pintarPlato()">
+      <button class="btn small ghost" onclick="platoTmp.ingredientes.splice(${i},1);pintarIngs();pintarPlato()" aria-label="Quitar">✕</button>
+    </div>`;
+  }).join("");
+}
+function addIng(){ platoTmp.ingredientes.push({id:"",g:""}); pintarIngs(); }
+function pintarPlato(){
+  let t = Object.assign({},CEROS), crudo = 0, cocinado = 0, cost = 0, faltaPrecio = false;
+  platoTmp.ingredientes.forEach(ing=>{
+    const a = byId(ing.id);
+    if(!a) return;
+    t = sumar(t, macrosDe(a, ing.g));
+    crudo += num(ing.g);
+    cocinado += num(ing.g) * (num(a.factor)>0 ? num(a.factor) : 1);
+    if(num(a.precio)>0) cost += coste(a, num(ing.g)); else faltaPrecio = true;
+  });
+  const peso = num(platoTmp.pesoFinal)>0 ? num(platoTmp.pesoFinal) : cocinado;
+  const rac = num(platoTmp.raciones)>0 ? num(platoTmp.raciones) : 1;
+  const f = peso>0 ? 100/peso : 0;
+  const por100 = {kcal:t.kcal*f, prot:t.prot*f, hid:t.hid*f, gra:t.gra*f, fib:t.fib*f};
+  const bloque = (o,u,extra)=>`
+    <div style="padding:7px 0;border-bottom:1px solid var(--line-soft)">
+      <div class="row" style="justify-content:space-between">
+        <span class="small muted">${u}</span><b class="num">${f0(o.kcal)} kcal${extra?` · ${extra}`:""}</b>
+      </div>${pills(o,true)}
+    </div>`;
+  document.getElementById("p-preview").innerHTML = peso>0 ? `
+    ${bloque(por100,"⚖️ Por 100 g", cost>0?eur(cost/peso*100):"")}
+    ${bloque({kcal:t.kcal/rac,prot:t.prot/rac,hid:t.hid/rac,gra:t.gra/rac,fib:t.fib/rac}, "🍴 Por ración ("+f0(peso/rac)+" g)", cost>0?eur(cost/rac):"")}
+    ${bloque(t,"🍲 Plato entero ("+f0(peso)+" g)", cost>0?eur(cost):"")}
+    <div class="small muted" style="margin-top:8px">
+      En crudo suma ${f0(crudo)} g. ${Math.abs(cocinado-crudo)>0.5 ? "Con los factores de cocción, unos <b>"+f0(cocinado)+" g</b> ya hecho." : ""}
+      ${num(platoTmp.pesoFinal)>0 ? "Estás usando el peso que has puesto a mano ("+f0(peso)+" g)." : "Si lo pesas al cocinarlo, mételo arriba y manda ese valor."}
+      ${cost>0 && faltaPrecio ? "<br>⚠ El coste es parcial: hay ingredientes sin precio." : ""}
+    </div>`
+    : '<div class="small muted">Elige ingredientes y sus gramos para ver los valores.</div>';
+}
+function guardarPlato(){
+  const nombre = (platoTmp.nombre||"").trim();
+  if(!nombre){ toast("Ponle un nombre al plato"); return; }
+  const ings = platoTmp.ingredientes.filter(i=>i.id && num(i.g)>0).map(i=>({id:i.id, g:num(i.g)}));
+  if(!ings.length){ toast("Añade al menos un ingrediente con gramos"); return; }
+  const datos = {nombre, tipo:"plato", ingredientes:ings, pesoFinal:num(platoTmp.pesoFinal)||0, raciones:num(platoTmp.raciones)||1};
+  if(platoTmp.id){ Object.assign(byId(platoTmp.id), datos); }
+  else { DB.alimentos.push(Object.assign({id:uid(), kcal:0,prot:0,hid:0,gra:0,fib:0}, datos)); }
+  recalcPlatos(); guardar(); cerrarModal(); renderAlimentos();
+  toast(platoTmp.id?"Plato actualizado":"Plato añadido");
+}
+
+/* ============ menús: biblioteca y diario ============ */
+function setVistaMenus(v){
+  vistaMenus = v;
+  ["biblioteca","diario","semana"].forEach(x=>
+    document.getElementById("vm-"+x).setAttribute("aria-pressed", String(v===x)));
+  renderMenus();
+  window.scrollTo(0,0);
+}
+/* lunes de la semana de una fecha */
+function lunesDe(iso){
+  const [y,m,d] = iso.split("-").map(Number);
+  const dt = new Date(y,m-1,d);
+  const diff = (dt.getDay()+6)%7;
+  dt.setDate(dt.getDate()-diff);
+  return new Date(dt.getTime()-dt.getTimezoneOffset()*60000).toISOString().slice(0,10);
+}
+function sumarDias(iso, n){
+  const [y,m,d] = iso.split("-").map(Number);
+  const dt = new Date(y,m-1,d+n);
+  return new Date(dt.getTime()-dt.getTimezoneOffset()*60000).toISOString().slice(0,10);
+}
+function moverSemana(n){ lunesSemana = sumarDias(lunesSemana, n*7); renderSemana(); }
+function renderSemana(){
+  const dias = Array.from({length:7},(_,i)=>sumarDias(lunesSemana,i));
+  const filas = dias.map(f=>{
+    const d = DB.diario[f];
+    if(!d || !MEALS.some(x=>(d.comidas[x.k]||[]).length)) return {f, vacio:true};
+    const t = totalMenu(d), o = objetivoGramos(d.tipo);
+    const pct = o.kcal>0 ? t.kcal/o.kcal*100 : 0;
+    return {f, vacio:false, t, o, pct, tipo:d.tipo};
+  });
+  const conDatos = filas.filter(x=>!x.vacio);
+  const media = k => conDatos.length ? conDatos.reduce((s,x)=>s+x.t[k],0)/conDatos.length : 0;
+  const dentro = conDatos.filter(x=>Math.abs(x.pct-100)<=10).length;
+  const maxK = Math.max(1, ...conDatos.map(x=>x.t.kcal), ...conDatos.map(x=>x.o.kcal));
+  const colorPct = p => p>110 ? "var(--prot)" : (p>=90 ? "var(--fib)" : (p>0 ? "var(--accent)" : "var(--surface2)"));
+
+  document.getElementById("semana").innerHTML = `
+    <div class="datebar">
+      <button class="arrow" onclick="moverSemana(-1)" aria-label="Semana anterior">‹</button>
+      <div class="d">${fechaCorta(lunesSemana)} – ${fechaCorta(sumarDias(lunesSemana,6))}<small>${conDatos.length} día(s) con registro</small></div>
+      <button class="arrow" onclick="moverSemana(1)" aria-label="Semana siguiente">›</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn small grow" onclick="lunesSemana=lunesDe(todayISO());renderSemana()">Semana actual</button>
+    </div>
+
+    <div class="card" style="margin-top:13px">
+      <div class="semgraf">
+        ${filas.map(x=>{
+          const alt = x.vacio ? 0 : Math.max(4, x.t.kcal/maxK*100);
+          const objAlt = x.vacio ? 0 : x.o.kcal/maxK*100;
+          return `<button class="semdia" onclick="irADiaDesdeSemana('${x.f}')">
+            <span class="sembar">
+              ${x.vacio?"":`<i class="semobj" style="bottom:${objAlt}%"></i>`}
+              <i class="semfill" style="height:${alt}%;background:${colorPct(x.vacio?0:x.pct)}"></i>
+            </span>
+            <span class="semnum num">${x.vacio?"–":f0(x.t.kcal)}</span>
+            <span class="semlb">${["L","M","X","J","V","S","D"][dias.indexOf(x.f)]}</span>
+          </button>`;
+        }).join("")}
+      </div>
+      <p class="small muted" style="margin:10px 0 0">La rayita marca el objetivo de ese día. Toca una barra para abrirlo en el diario.</p>
+    </div>
+
+    <div class="card" style="margin-top:11px">
+      <div class="row" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line-soft)">
+        <span class="small muted">Media de calorías</span><b class="num">${conDatos.length?f0(media("kcal"))+" kcal":"—"}</b></div>
+      <div class="row" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line-soft)">
+        <span class="small muted">Media de macros</span>
+        <span class="mps" style="margin:0">${conDatos.length?`<span class="mp p">P ${f1(media("prot"))}</span><span class="mp h">H ${f1(media("hid"))}</span><span class="mp g">G ${f1(media("gra"))}</span><span class="mp f">F ${f1(media("fib"))}</span>`:"—"}</span></div>
+      <div class="row" style="justify-content:space-between;padding:6px 0">
+        <span class="small muted">Días dentro del ±10 %</span>
+        <b class="num" style="color:${conDatos.length && dentro/conDatos.length>=0.7?"var(--fib)":"var(--hid)"}">${dentro} de ${conDatos.length||0}</b></div>
+      ${conDatos.length ? "" : '<p class="small muted" style="margin:8px 0 0">Sin días registrados esta semana.</p>'}
+    </div>`;
+}
+function irADiaDesdeSemana(f){
+  fechaDiario = f;
+  setVistaMenus("diario");
+}
+/* el menú que se está editando ahora mismo: uno de la biblioteca o el del día */
+function menuActual(){
+  if(vistaMenus==="diario") return DB.diario[fechaDiario] || null;
+  return menuById(menuAbierto);
+}
+function refrescarEditor(){
+  if(vistaMenus==="diario") renderDiario(); else renderDetalleMenu();
+}
+function setFiltroMenu(f){ filtroMenu=f; renderMenus(); }
+
+function renderMenus(){
+  const lista = document.getElementById("menus-lista");
+  const det = document.getElementById("menus-detalle");
+  const dia = document.getElementById("diario");
+
+  const sem = document.getElementById("semana");
+  if(vistaMenus==="diario"){
+    lista.classList.add("hidden"); det.classList.add("hidden"); sem.classList.add("hidden");
+    dia.classList.remove("hidden");
+    renderDiario();
+    return;
+  }
+  if(vistaMenus==="semana"){
+    lista.classList.add("hidden"); det.classList.add("hidden"); dia.classList.add("hidden");
+    sem.classList.remove("hidden");
+    renderSemana();
+    return;
+  }
+  dia.classList.add("hidden"); sem.classList.add("hidden");
+  if(menuAbierto && menuById(menuAbierto)){
+    lista.classList.add("hidden"); det.classList.remove("hidden");
+    renderDetalleMenu();
+    return;
+  }
+  menuAbierto = null;
+  det.classList.add("hidden"); det.innerHTML=""; lista.classList.remove("hidden");
+
+  let ms = DB.menus.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre,"es"));
+  if(filtroMenu!=="todos") ms = ms.filter(m=>m.tipo===filtroMenu);
+
+  lista.innerHTML = `
+    <div class="chips">
+      <button class="chip" aria-pressed="${filtroMenu==="todos"}" onclick="setFiltroMenu('todos')">Todos</button>
+      <button class="chip" id="mf-entreno" aria-pressed="${filtroMenu==="entreno"}" onclick="setFiltroMenu('entreno')">🏋️ Entreno</button>
+      <button class="chip" id="mf-descanso" aria-pressed="${filtroMenu==="descanso"}" onclick="setFiltroMenu('descanso')">🌙 Descanso</button>
+    </div>
+    <button class="btn primary" style="width:100%;margin-bottom:13px" onclick="nuevoMenu()">＋ Nuevo menú</button>
+    <div class="flist">
+      ${ms.length ? ms.map(m=>{
+        const t = totalMenu(m);
+        const o = objetivoGramos(m.tipo);
+        const dif = t.kcal - o.kcal;
+        const col = m.tipo==="entreno" ? "var(--entreno)" : "var(--descanso)";
+        const bg  = m.tipo==="entreno" ? "var(--entreno-bg)" : "var(--descanso-bg)";
+        return `<button class="fitem" onclick="abrirMenu('${m.id}')">
+          <span class="badge" style="background:${bg}">${TIPOS[m.tipo].ic}</span>
+          <span class="grow">
+            <span class="nm">${esc(m.nombre)}<span class="tag ${m.tipo}">${TIPOS[m.tipo].n}</span></span>
+            ${pills(t,true)}
+          </span>
+          <span class="kcalbig num" style="color:${col}">${f0(t.kcal)}
+            <small class="${dif>0?"up":"down"}">${dif>0?"▲ +":"▼ −"}${f0(Math.abs(dif))} kcal</small></span>
+        </button>`;
+      }).join("") : `<div class="empty"><span class="big">🍽️</span>${DB.menus.length?"No hay menús de este tipo.":"Todavía no hay menús. Crea uno y guárdalo para reutilizarlo cualquier día."}</div>`}
+    </div>`;
+  guardar();
+}
+function nuevoMenu(){
+  const m = normalizarMenu({id:uid(), nombre:"Menú "+(DB.menus.length+1), tipo: filtroMenu==="descanso"?"descanso":"entreno", comidas:{}});
+  DB.menus.push(m); menuAbierto = m.id; guardar(); renderMenus();
+}
+function abrirMenu(id){ menuAbierto = id; renderMenus(); window.scrollTo(0,0); }
+function volverAMenus(){ menuAbierto = null; renderMenus(); window.scrollTo(0,0); }
+function copiaComidas(origen){
+  const c = {};
+  MEALS.forEach(x=> c[x.k] = (origen[x.k]||[]).map(i=>Object.assign({}, i)));
+  return c;
+}
+function duplicarMenu(id){
+  const m = menuById(id);
+  const copia = normalizarMenu({id:uid(), nombre:m.nombre+" (copia)", tipo:m.tipo, comidas:copiaComidas(m.comidas)});
+  DB.menus.push(copia); menuAbierto = copia.id; guardar(); renderMenus(); toast("Menú duplicado");
+}
+function borrarMenu(id){
+  if(!confirm("¿Borrar este menú?")) return;
+  DB.menus = DB.menus.filter(m=>m.id!==id);
+  menuAbierto = null; guardar(); renderMenus(); toast("Menú borrado");
+}
+function cambiarTipoMenu(tipo){
+  const m = menuActual(); if(!m) return;
+  m.tipo = tipo; guardar(); refrescarEditor();
+}
+function renombrarMenu(v){
+  const m = menuById(menuAbierto); if(!m) return;
+  m.nombre = v.trim() || "Menú sin nombre"; guardar();
+}
+
+/* ---- diario ---- */
+function moverDia(d){
+  const [y,mo,dd] = fechaDiario.split("-").map(Number);
+  const dt = new Date(y, mo-1, dd+d);
+  fechaDiario = new Date(dt.getTime()-dt.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  renderDiario();
+}
+function irADia(f){ fechaDiario = f; renderDiario(); window.scrollTo(0,0); }
+function diaActual(){ return DB.diario[fechaDiario] || null; }
+function crearDia(base){
+  DB.diario[fechaDiario] = normalizarMenu({
+    tipo: base ? base.tipo : "entreno",
+    origen: base ? base.nombre : null,
+    comidas: base ? copiaComidas(base.comidas) : {}
+  });
+  guardar(); renderDiario();
+}
+function cargarMenuEnDia(){
+  if(!DB.menus.length){
+    modal(`<h3>📖 Sin menús</h3><div class="empty">Crea antes un menú en la biblioteca.</div>
+      <div class="sticky-actions"><button class="btn" onclick="cerrarModal()">Cerrar</button></div>`);
+    return;
+  }
+  modal(`<h3>📖 Elegir menú para el día</h3>
+    <div class="picklist">
+      ${DB.menus.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre,"es")).map(m=>{
+        const col = m.tipo==="entreno" ? "var(--entreno)" : "var(--descanso)";
+        return `<button class="fitem" onclick="elegirMenuDia('${m.id}')">
+          <span class="badge" style="background:${col}22">${TIPOS[m.tipo].ic}</span>
+          <span class="grow"><span class="nm">${esc(m.nombre)}<span class="tag ${m.tipo}">${TIPOS[m.tipo].n}</span></span></span>
+          <span class="num small muted">${f0(totalMenu(m).kcal)} kcal</span></button>`;
+      }).join("")}
+    </div>
+    <div class="sticky-actions"><button class="btn" onclick="cerrarModal()">Cerrar</button></div>`);
+}
+function elegirMenuDia(id){
+  const m = menuById(id); if(!m) return;
+  const d = diaActual();
+  if(d && MEALS.some(x=>(d.comidas[x.k]||[]).length) && !confirm("Se sustituye lo que ya tienes apuntado en este día. ¿Seguir?")) return;
+  crearDia(m); cerrarModal(); toast("Menú cargado en el día");
+}
+function guardarDiaComoMenu(){
+  const d = diaActual(); if(!d) return;
+  const nombre = prompt("Nombre del nuevo menú:", d.origen ? d.origen+" (variante)" : "Menú "+fechaDiario);
+  if(!nombre) return;
+  DB.menus.push(normalizarMenu({id:uid(), nombre:nombre.trim(), tipo:d.tipo, comidas:copiaComidas(d.comidas)}));
+  guardar(); toast("Guardado en la biblioteca");
+}
+function vaciarDia(){
+  if(!confirm("¿Vaciar este día?")) return;
+  delete DB.diario[fechaDiario]; guardar(); renderDiario();
+}
+function renderDiario(){
+  const cont = document.getElementById("diario");
+  const d = diaActual();
+  const fechas = Object.keys(DB.diario).filter(f=>MEALS.some(x=>(DB.diario[f].comidas[x.k]||[]).length)).sort().reverse();
+  const recientes = fechas.slice(0,7);
+
+  const cabecera = `
+    <div class="datebar">
+      <button class="arrow" onclick="moverDia(-1)" aria-label="Día anterior">‹</button>
+      <div class="d">${fechaLarga(fechaDiario)}<small>${fechaDiario===todayISO()?"hoy":""}</small></div>
+      <button class="arrow" onclick="moverDia(1)" aria-label="Día siguiente">›</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <input type="date" class="grow" value="${fechaDiario}" onchange="irADia(this.value)">
+      <button class="btn small" onclick="irADia('${todayISO()}')">Hoy</button>
+    </div>`;
+
+  const pie = recientes.length ? `
+    <h2 style="margin-top:22px">📅 Días con registro</h2>
+    <div class="flist">
+      ${recientes.map(f=>{
+        const dd = DB.diario[f];
+        const t = totalMenu(dd);
+        const o = objetivoGramos(dd.tipo);
+        const col = dd.tipo==="entreno" ? "var(--entreno)" : "var(--descanso)";
+        const dif = t.kcal-o.kcal;
+        return `<button class="fitem" onclick="irADia('${f}')">
+          <span class="badge" style="background:${col}22">${TIPOS[dd.tipo].ic}</span>
+          <span class="grow"><span class="nm">${fechaCorta(f)}</span>
+            <span class="small muted">${dd.origen?esc(dd.origen):"suelto"}</span></span>
+          <span class="kcalbig num" style="color:${col}">${f0(t.kcal)}
+            <small class="${dif>0?"up":"down"}">${dif>0?"▲ +":"▼ −"}${f0(Math.abs(dif))} kcal</small></span>
+        </button>`;
+      }).join("")}
+    </div>` : "";
+
+  if(!d){
+    cont.innerHTML = cabecera + `
+      <div class="empty" style="margin-top:14px"><span class="big">📅</span>Sin nada apuntado este día.</div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary grow" onclick="cargarMenuEnDia()">📖 Cargar un menú</button>
+        <button class="btn grow" onclick="crearDia(null)">＋ Empezar en blanco</button>
+      </div>` + pie;
+    return;
+  }
+  cont.innerHTML = cabecera + `
+    <p class="small muted" style="margin:14px 0 7px">
+      ${d.origen ? "Copiado de «"+esc(d.origen)+"». Lo que cambies aquí no toca el menú original." : "Día suelto, sin menú de origen."}
+    </p>
+    <div class="seg">
+      <button data-t="entreno" aria-pressed="${d.tipo==="entreno"}" onclick="cambiarTipoMenu('entreno')">🏋️ Entrenamiento</button>
+      <button data-t="descanso" aria-pressed="${d.tipo==="descanso"}" onclick="cambiarTipoMenu('descanso')">🌙 Descanso</button>
+    </div>
+    ${bloqueMenu(d)}
+    <div class="row" style="margin-top:13px">
+      <button class="btn grow small" onclick="cargarMenuEnDia()">📖 Cambiar menú</button>
+      <button class="btn grow small" onclick="guardarDiaComoMenu()">💾 Guardar como menú</button>
+      <button class="btn danger small" onclick="vaciarDia()">🗑</button>
+    </div>` + pie;
+  guardar();
+}
+
+/* ---- completar el objetivo: cuántos gramos faltan y con qué ---- */
+const MACROS_AJ = [
+  {k:"kcal", n:"Calorías", ic:"⚡", c:"var(--accent)", u:"kcal"},
+  {k:"prot", n:"Proteína", ic:"🔴", c:"var(--prot)", u:"g"},
+  {k:"hid",  n:"Hidratos", ic:"🟡", c:"var(--hid)",  u:"g"},
+  {k:"gra",  n:"Grasas",   ic:"🟣", c:"var(--gra)",  u:"g"}
+];
+let ajuste = {macro:"prot", meal:"cena"};
+function huecoActual(){
+  const m = menuActual(); if(!m) return null;
+  const t = totalMenu(m), o = objetivoGramos(m.tipo);
+  return {kcal:o.kcal-t.kcal, prot:o.prot-t.prot, hid:o.hid-t.hid, gra:o.gra-t.gra, fib:o.fib-t.fib};
+}
+function abrirAjuste(){
+  const m = menuActual(); if(!m) return;
+  const h = huecoActual();
+  // por defecto, el macro con mayor hueco relativo
+  const o = objetivoGramos(m.tipo);
+  let mejor = "prot", peor = -1;
+  ["prot","hid","gra"].forEach(k=>{ const r = o[k]>0 ? h[k]/o[k] : 0; if(r>peor){ peor=r; mejor=k; } });
+  ajuste.macro = mejor;
+  modal(`<h3>🎯 Completar el objetivo</h3><div id="aj-cuerpo"></div>
+    <div class="sticky-actions"><button class="btn" onclick="cerrarModal()">Cerrar</button></div>`);
+  pintarAjuste();
+}
+function setAjuste(k,v){ ajuste[k]=v; pintarAjuste(); }
+function pintarAjuste(){
+  const m = menuActual(); if(!m) return;
+  const h = huecoActual();
+  const mac = MACROS_AJ.find(x=>x.k===ajuste.macro);
+  const falta = h[ajuste.macro];
+
+  // candidatos: gramos que harían falta de cada alimento para tapar ese hueco
+  let cands = [];
+  if(falta > 0){
+    DB.alimentos.forEach(a=>{
+      const por100 = num(a[ajuste.macro]);
+      if(por100 <= 0) return;
+      const g = falta/por100*100;
+      if(g < 5 || g > 800) return;
+      const ap = macrosDe(a, g);
+      // penaliza pasarse en lo demás
+      let pen = 0;
+      ["kcal","prot","hid","gra"].forEach(k=>{ if(k!==ajuste.macro) pen += Math.max(0, ap[k]-h[k]) * (k==="kcal"?1:4); });
+      cands.push({a, g, ap, pen});
+    });
+    cands.sort((x,y)=>x.pen-y.pen);
+    cands = cands.slice(0,6);
+  }
+
+  document.getElementById("aj-cuerpo").innerHTML = `
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><span class="small muted">Te falta hoy</span></div>
+      <div class="mps" style="margin-top:7px">
+        <span class="mp" style="background:rgba(52,211,192,.14);color:var(--accent)">${f0(h.kcal)} kcal</span>
+        <span class="mp p">P ${f1(h.prot)}</span><span class="mp h">H ${f1(h.hid)}</span>
+        <span class="mp g">G ${f1(h.gra)}</span><span class="mp f">F ${f1(h.fib)}</span>
+      </div>
+    </div>
+    <label class="f" style="margin-top:13px">Qué quiero cerrar</label>
+    <div class="chips wrapx">
+      ${MACROS_AJ.map(x=>`<button class="chip" aria-pressed="${ajuste.macro===x.k}" onclick="setAjuste('macro','${x.k}')"
+        style="${ajuste.macro===x.k?`color:${x.c};border-color:${x.c}`:""}">${x.ic} ${x.n}</button>`).join("")}
+    </div>
+    <label class="f">Añadirlo a</label>
+    <div class="chips wrapx">
+      ${MEALS.map(x=>`<button class="chip" aria-pressed="${ajuste.meal===x.k}" onclick="setAjuste('meal','${x.k}')">${x.ic} ${x.n}</button>`).join("")}
+    </div>
+    ${falta <= 0
+      ? `<div class="empty">Ya has cubierto ${mac.n.toLowerCase()}. Te pasas en ${f1(-falta)} ${mac.u}.</div>`
+      : (cands.length
+        ? `<p class="small muted" style="margin:4px 0 8px">Gramos necesarios para llegar a ${f1(falta)} ${mac.u} de ${mac.n.toLowerCase()}. Ordenado por lo poco que descuadra el resto.</p>
+           <div class="flist">${cands.map((c,i)=>`
+            <button class="fitem" onclick="aplicarAjuste(${i})">
+              ${badgeDe(c.a)}
+              <span class="grow"><span class="nm">${esc(c.a.nombre)}</span>
+                <span class="mps">
+                  <span class="mp" style="background:rgba(52,211,192,.14);color:var(--accent)">+${f0(c.ap.kcal)} kcal</span>
+                  <span class="mp p">+${f1(c.ap.prot)}</span><span class="mp h">+${f1(c.ap.hid)}</span><span class="mp g">+${f1(c.ap.gra)}</span>
+                </span></span>
+              <span class="kcalbig num" style="color:${mac.c}">${f0(c.g)}<small>${c.a.tipo==="plato"?"g":uni(c.a)}</small></span>
+            </button>`).join("")}</div>`
+        : `<div class="empty">Ningún alimento tuyo tapa ese hueco con una cantidad razonable (entre 5 y 800 g).</div>`)}`;
+  ajusteCands = cands;
+}
+let ajusteCands = [];
+function aplicarAjuste(i){
+  const c = ajusteCands[i]; if(!c) return;
+  const m = menuActual(); if(!m) return;
+  m.comidas[ajuste.meal].push({id:c.a.id, g:Math.round(c.g)});
+  guardar(); cerrarModal(); refrescarEditor();
+  toast(f0(c.g)+" "+(c.a.tipo==="plato"?"g":uni(c.a))+" de "+c.a.nombre);
+}
+
+/* ---- editor común de comidas ---- */
+function barra(icono, label, valor, objetivo, color){
+  const pct = objetivo>0 ? (valor/objetivo)*100 : 0;
+  const ancho = Math.min(pct,100);
+  const exceso = Math.max(0, Math.min(pct-100, 100));
+  return `
+    <div class="ruler">
+      <div class="top">
+        <span class="lb"><i class="dot" style="background:${color}"></i>${icono} ${label}</span>
+        <span class="num"><b style="color:${color}">${f1(valor)}</b> <span class="muted">/ ${f1(objetivo)} g</span></span>
+      </div>
+      <div class="track">
+        <div class="fill" style="width:${ancho}%;background:${color};box-shadow:0 0 10px ${color}55"></div>
+        ${exceso>0?`<div class="over" style="left:${100-exceso}%;width:${exceso}%"></div>`:""}
+        <div class="ticks"><i></i><i></i><i></i><i></i></div>
+      </div>
+    </div>`;
+}
+function costeMenu(m){
+  let c = 0;
+  MEALS.forEach(x=>(m.comidas[x.k]||[]).forEach(it=>{
+    if(it.libre) return;
+    const a = byId(it.id);
+    if(a) c += coste(a, num(it.g));
+  }));
+  return c;
+}
+function bloqueMenu(m){
+  const t = totalMenu(m);
+  const o = objetivoGramos(m.tipo);
+  const rest = o.kcal - t.kcal;
+  const pctK = o.kcal>0 ? t.kcal/o.kcal*100 : 0;
+  const colK = pctK>105 ? "var(--prot)" : (pctK>=95 ? "var(--fib)" : "var(--accent)");
+  return `
+    <div class="card" style="margin-top:13px">
+      <div class="kcalhero">
+        <div class="n num" style="color:${colK}">${f0(t.kcal)} <span>de ${f0(o.kcal)} kcal</span></div>
+        <div class="rest num">${rest>=0 ? "faltan" : "sobran"}<b>${f0(Math.abs(rest))}</b>kcal</div>
+      </div>
+      <div class="track" style="height:8px;margin-bottom:4px">
+        <div class="fill" style="width:${Math.min(pctK,100)}%;background:${colK};box-shadow:0 0 10px ${colK}55"></div>
+        <div class="ticks"><i></i><i></i><i></i><i></i></div>
+      </div>
+      ${barra("🔴","Proteína", t.prot, o.prot, "var(--prot)")}
+      ${barra("🟡","Hidratos", t.hid, o.hid, "var(--hid)")}
+      ${barra("🟣","Grasas", t.gra, o.gra, "var(--gra)")}
+      ${barra("🟢","Fibra", t.fib, o.fib, "var(--fib)")}
+      ${costeMenu(m) > 0 ? `<div class="row" style="justify-content:space-between;margin-top:11px;padding-top:9px;border-top:1px solid var(--line-soft)">
+        <span class="small muted">Coste aproximado</span><b class="num">${eur(costeMenu(m))}</b></div>` : ""}
+      <button class="btn small" style="width:100%;margin-top:11px" onclick="abrirAjuste()">🎯 Completar el objetivo</button>
+    </div>
+    <div style="margin-top:13px">
+      ${MEALS.map(x=>{
+        const items = m.comidas[x.k]||[];
+        const tm = totalItems(items);
+        const pct = num(obj(m.tipo).reparto[x.k]);
+        return `
+          <div class="meal" style="border-left-color:${x.c}">
+            <div class="head">
+              <span class="badge" style="background:${x.c}22">${x.ic}</span>
+              <div class="t">${x.n}<small class="num">meta ${f0(o.kcal*pct/100)} kcal · ${f0(pct)}%</small></div>
+              <div class="kcalbig num" style="color:${x.c}">${f0(tm.kcal)}<small>kcal</small></div>
+            </div>
+            <div class="items">
+              ${items.map((it,i)=>{
+                const mm = macrosItem(it);
+                if(!mm) return "";
+                const nombre = it.libre ? esc(it.nombre||"Comida fuera") : esc(byId(it.id).nombre);
+                const detalle = it.libre ? '<span class="tag libre">estimado</span>'
+                                         : `<span class="muted num small">${f0(it.g)} ${uni(byId(it.id))}</span>`;
+                return `<button class="mi" onclick="${it.libre?`abrirLibre('${x.k}',${i})`:`editarItem('${x.k}',${i})`}">
+                  ${it.libre ? '<span class="badge" style="background:rgba(255,107,170,.16)">🍴</span>' : badgeDe(byId(it.id))}
+                  <span class="grow"><span class="nm">${nombre} ${detalle}</span>
+                  ${pills(mm,false)}</span>
+                  <span class="num small muted">${f0(mm.kcal)} kcal</span></button>`;
+              }).join("")}
+            </div>
+            <div class="addline row">
+              <button class="btn small ghost grow" onclick="abrirSelector('${x.k}')">＋ De mis alimentos</button>
+              <button class="btn small ghost grow" onclick="abrirLibre('${x.k}',null)">🍴 Comida fuera</button>
+            </div>
+          </div>`;
+      }).join("")}
+    </div>`;
+}
+function renderDetalleMenu(){
+  const m = menuById(menuAbierto);
+  if(!m){ volverAMenus(); return; }
+  normalizarMenu(m);
+  document.getElementById("menus-detalle").innerHTML = `
+    <button class="back" onclick="volverAMenus()">‹ Todos los menús</button>
+    <input value="${esc(m.nombre)}" style="font-size:17px;font-weight:600" onchange="renombrarMenu(this.value);renderDetalleMenu()">
+    <p class="small muted" style="margin:12px 0 7px">Objetivo que se aplica a este menú</p>
+    <div class="seg">
+      <button data-t="entreno" aria-pressed="${m.tipo==="entreno"}" onclick="cambiarTipoMenu('entreno')">🏋️ Entrenamiento</button>
+      <button data-t="descanso" aria-pressed="${m.tipo==="descanso"}" onclick="cambiarTipoMenu('descanso')">🌙 Descanso</button>
+    </div>
+    ${bloqueMenu(m)}
+    <div class="row" style="margin-top:13px">
+      <button class="btn grow small" onclick="duplicarMenu('${m.id}')">⧉ Duplicar menú</button>
+      <button class="btn danger small" onclick="borrarMenu('${m.id}')">🗑 Borrar menú</button>
+    </div>`;
+  guardar();
+}
+
+/* ---- comida fuera / apunte libre ---- */
+function abrirLibre(mealKey, idx){
+  const m = menuActual(); if(!m) return;
+  const it = idx!==null && idx!==undefined ? m.comidas[mealKey][idx] : null;
+  modal(`
+    <h3>🍴 ${it?"Editar comida fuera":"Comida fuera de casa"}</h3>
+    <p class="small muted" style="margin:0 0 11px">Valores totales de lo que has comido, no por 100 g. Es una estimación: no entra en la lista de la compra.</p>
+    <label class="f" for="l-nombre">Qué fue</label>
+    <input id="l-nombre" value="${it?esc(it.nombre||""):""}" placeholder="Menú del día, arroz con costra…">
+    <div class="cell c-kcal" style="margin:10px 0 9px">
+      <label class="f" for="l-kcal">Calorías</label><input id="l-kcal" inputmode="decimal" value="${it?it.kcal:""}">
+    </div>
+    <div class="grid5">
+      <div class="cell c-p"><label class="f" for="l-prot">🔴 Proteínas g</label><input id="l-prot" inputmode="decimal" value="${it?it.prot:""}"></div>
+      <div class="cell c-h"><label class="f" for="l-hid">🟡 Hidratos g</label><input id="l-hid" inputmode="decimal" value="${it?it.hid:""}"></div>
+      <div class="cell c-g"><label class="f" for="l-gra">🟣 Grasas g</label><input id="l-gra" inputmode="decimal" value="${it?it.gra:""}"></div>
+      <div class="cell c-f"><label class="f" for="l-fib">🟢 Fibra g</label><input id="l-fib" inputmode="decimal" value="${it?it.fib:""}"></div>
+    </div>
+    <div class="sticky-actions">
+      ${it?`<button class="btn danger" onclick="quitarLibre('${mealKey}',${idx})">🗑</button>`:""}
+      <button class="btn ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn primary" onclick="guardarLibre('${mealKey}',${idx===null||idx===undefined?"null":idx})">Guardar</button>
+    </div>`);
+  setTimeout(()=>document.getElementById("l-nombre").focus(),50);
+}
+function guardarLibre(mealKey, idx){
+  const m = menuActual(); if(!m) return;
+  const datos = {
+    libre:true,
+    nombre: document.getElementById("l-nombre").value.trim() || "Comida fuera",
+    kcal:num(document.getElementById("l-kcal").value),
+    prot:num(document.getElementById("l-prot").value),
+    hid:num(document.getElementById("l-hid").value),
+    gra:num(document.getElementById("l-gra").value),
+    fib:num(document.getElementById("l-fib").value)
+  };
+  if(idx===null || idx===undefined) m.comidas[mealKey].push(datos);
+  else m.comidas[mealKey][idx] = datos;
+  guardar(); cerrarModal(); refrescarEditor();
+}
+function quitarLibre(mealKey, idx){
+  const m = menuActual(); if(!m) return;
+  m.comidas[mealKey].splice(idx,1);
+  guardar(); cerrarModal(); refrescarEditor();
+}
+
+/* ---- selector de alimento ---- */
+let sel = {meal:null, id:null, idx:null};
+function abrirSelector(mealKey){
+  sel = {meal:mealKey, id:null, idx:null};
+  if(!DB.alimentos.length){
+    modal(`<h3>Sin alimentos</h3><div class="empty"><span class="big">🥕</span>Primero crea productos o platos en la pestaña Alimentos.</div>
+      <div class="sticky-actions"><button class="btn" onclick="cerrarModal()">Cerrar</button></div>`);
+    return;
+  }
+  const mm = meal(mealKey);
+  modal(`
+    <h3>${mm.ic} Añadir a ${esc(mm.n)}</h3>
+    <input id="s-buscar" placeholder="🔍  Buscar" oninput="pintarPick()">
+    <div id="s-lista" class="picklist"></div>
+    <div id="s-cant"></div>
+    <div class="sticky-actions"><button class="btn" onclick="cerrarModal()">Cerrar</button></div>`);
+  pintarPick();
+  setTimeout(()=>document.getElementById("s-buscar").focus(),50);
+}
+function pintarPick(){
+  const q=(document.getElementById("s-buscar").value||"").trim().toLowerCase();
+  const lista = DB.alimentos.filter(a=>!q||a.nombre.toLowerCase().includes(q))
+    .sort((a,b)=>a.nombre.localeCompare(b.nombre,"es"));
+  document.getElementById("s-lista").innerHTML = lista.length ? lista.map(a=>`
+    <button class="fitem" onclick="elegir('${a.id}')">
+      ${badgeDe(a)}
+      <span class="grow"><span class="nm">${esc(a.nombre)}${a.tipo==='plato'?'<span class="tag plato">plato</span>':tagSuper(a)}</span></span>
+      <span class="num small muted">${f0(a.kcal)} kcal</span></button>`).join("")
+    : '<div class="empty">Nada coincide.</div>';
+}
+function elegir(id){
+  sel.id = id;
+  const a = byId(id);
+  const rac = a.tipo==="plato" && num(a.raciones)>0 && num(a.pesoTotal)>0 ? Math.round(a.pesoTotal/a.raciones) : 0;
+  document.getElementById("s-lista").classList.add("hidden");
+  document.getElementById("s-cant").innerHTML = `
+    <div class="card" style="margin-top:10px">
+      <div class="row" style="justify-content:space-between">
+        <span class="row" style="gap:9px">${badgeDe(a)}<b>${esc(a.nombre)}</b></span>
+        ${sel.idx===null?'<button class="btn small ghost" onclick="volverPick()">Cambiar</button>':''}</div>
+      <label class="f" for="s-g" style="margin-top:11px">⚖️ Cantidad en ${a.tipo==="plato"?"g":uni(a)}</label>
+      <input id="s-g" inputmode="decimal" value="100" oninput="pintarCant()">
+      <div class="qty">
+        ${[50,100,150,200,250].map(g=>`<button class="chip" onclick="setG(${g})">${g} ${a.tipo==="plato"?"g":uni(a)}</button>`).join("")}
+        ${rac?`<button class="chip" style="color:var(--m-comida);border-color:var(--m-comida)" onclick="setG(${rac})">🍴 1 ración (${rac} g)</button>`:""}
+      </div>
+      <div class="row" style="justify-content:space-between"><span class="small muted">Aporta</span><b class="num" id="s-kcal"></b></div>
+      <div id="s-prev"></div>
+      <div class="row" style="margin-top:12px">
+        ${sel.idx!==null?`<button class="btn danger" onclick="quitarItem()">🗑 Quitar</button>`:""}
+        <button class="btn primary grow" onclick="confirmarItem()">${sel.idx!==null?"Guardar":"Añadir"}</button>
+      </div>
+    </div>`;
+  pintarCant();
+  setTimeout(()=>{const e=document.getElementById("s-g"); if(e){e.focus(); e.select();}},50);
+}
+function volverPick(){
+  sel.id=null; sel.idx=null;
+  document.getElementById("s-lista").classList.remove("hidden");
+  document.getElementById("s-cant").innerHTML="";
+}
+function setG(g){ document.getElementById("s-g").value=g; pintarCant(); }
+function pintarCant(){
+  const a = byId(sel.id); const g = num(document.getElementById("s-g").value);
+  const m = macrosDe(a,g);
+  document.getElementById("s-kcal").textContent = f0(m.kcal)+" kcal";
+  document.getElementById("s-prev").innerHTML = pills(m,true);
+}
+function confirmarItem(){
+  const g = num(document.getElementById("s-g").value);
+  if(g<=0){ toast("Pon una cantidad mayor que 0"); return; }
+  const m = menuActual(); if(!m) return;
+  if(sel.idx!==null){ m.comidas[sel.meal][sel.idx] = {id:sel.id, g}; }
+  else { m.comidas[sel.meal].push({id:sel.id, g}); }
+  guardar(); cerrarModal(); refrescarEditor();
+}
+function editarItem(mealKey, idx){
+  const m = menuActual(); if(!m) return;
+  const it = m.comidas[mealKey][idx];
+  sel = {meal:mealKey, id:it.id, idx};
+  const a = byId(it.id);
+  modal(`<h3>${meal(mealKey).ic} ${esc(a.nombre)}</h3><div id="s-lista" class="hidden"></div><div id="s-cant"></div>
+    <div class="sticky-actions"><button class="btn" onclick="cerrarModal()">Cerrar</button></div>`);
+  elegir(it.id);
+  document.getElementById("s-g").value = it.g;
+  pintarCant();
+}
+function quitarItem(){
+  const m = menuActual(); if(!m) return;
+  m.comidas[sel.meal].splice(sel.idx,1);
+  guardar(); cerrarModal(); refrescarEditor();
+}
+
+/* ============ lista de la compra ============ */
+/* Descompone cualquier alimento en productos base. Para un plato, "gramos" son
+   gramos del plato ya hecho: se reparten entre sus ingredientes en crudo. */
+function expandir(id, gramos, acc, prof){
+  prof = prof || 0;
+  if(prof > 8) return;
+  const a = byId(id);
+  if(!a || !(gramos>0)) return;
+  if(a.tipo !== "plato"){ acc[a.id] = (acc[a.id]||0) + gramos; return; }
+  const peso = num(a.pesoTotal) > 0 ? num(a.pesoTotal)
+             : (a.ingredientes||[]).reduce((s,i)=>s+num(i.g),0);
+  if(!(peso>0)) return;
+  const f = gramos/peso;
+  (a.ingredientes||[]).forEach(i=> expandir(i.id, num(i.g)*f, acc, prof+1));
+}
+function calcularCompra(){
+  const acc = {};
+  (DB.compra.items||[]).forEach(it=>{
+    const cant = num(it.cant)>0 ? num(it.cant) : 0;
+    if(!cant) return;
+    if(it.tipo==="plato"){
+      const p = byId(it.id);
+      if(!p || p.tipo!=="plato") return;
+      const rac = num(p.raciones)>0 ? num(p.raciones) : 1;
+      const peso = num(p.pesoTotal)>0 ? num(p.pesoTotal) : (p.ingredientes||[]).reduce((s,i)=>s+num(i.g),0);
+      expandir(p.id, peso*cant/rac, acc);
+    } else {
+      const m = menuById(it.id);
+      if(!m) return;
+      MEALS.forEach(x=> (m.comidas[x.k]||[]).forEach(i=>{ if(!i.libre) expandir(i.id, num(i.g)*cant, acc); }));
+    }
+  });
+  const porSuper = {};
+  Object.keys(acc).forEach(id=>{
+    const a = byId(id); if(!a) return;
+    const k = sup(a.super).k;
+    (porSuper[k] = porSuper[k] || []).push({a, g:acc[id]});
+  });
+  Object.values(porSuper).forEach(arr=>arr.sort((x,y)=>x.a.nombre.localeCompare(y.a.nombre,"es")));
+  return porSuper;
+}
+function addCompra(tipo, id){
+  DB.compra.items = DB.compra.items || [];
+  const ya = DB.compra.items.find(i=>i.tipo===tipo && i.id===id);
+  if(ya){ ya.cant = num(ya.cant)+1; }
+  else { DB.compra.items.push({tipo, id, cant:1}); }
+  guardar(); cerrarModal(); renderCompra();
+}
+function setCantCompra(idx, v){
+  DB.compra.items[idx].cant = num(v);
+  guardar(); renderCompra();
+}
+function quitarCompra(idx){
+  DB.compra.items.splice(idx,1); guardar(); renderCompra();
+}
+function vaciarCompra(){
+  if(!confirm("¿Vaciar la selección y la lista?")) return;
+  DB.compra.items = []; DB.compra.marcados = []; guardar(); renderCompra();
+}
+function marcar(id){
+  const s = new Set(DB.compra.marcados||[]);
+  if(s.has(id)) s.delete(id); else s.add(id);
+  DB.compra.marcados = Array.from(s);
+  guardar(); renderCompra();
+}
+function renderCompra(){
+  DB.compra = DB.compra || {items:[], marcados:[]};
+  const items = DB.compra.items = (DB.compra.items||[]).filter(i=> i.tipo==="plato" ? byId(i.id) : menuById(i.id));
+  const marcados = new Set(DB.compra.marcados||[]);
+
+  document.getElementById("compra-sel").innerHTML = items.length ? items.map((it,idx)=>{
+    const o = it.tipo==="plato" ? byId(it.id) : menuById(it.id);
+    const unidad = it.tipo==="plato" ? "raciones" : "veces";
+    const ic = it.tipo==="plato" ? "🍲" : TIPOS[o.tipo].ic;
+    const col = it.tipo==="plato" ? "var(--m-comida)" : (o.tipo==="entreno"?"var(--entreno)":"var(--descanso)");
+    return `<div class="selrow">
+      <span class="badge" style="background:${col}22">${ic}</span>
+      <span class="grow"><span class="nm">${esc(o.nombre)}</span>
+        <span class="small muted">${it.tipo==="plato"?"plato":"menú"} · ${unidad}</span></span>
+      <input inputmode="decimal" value="${it.cant}" onchange="setCantCompra(${idx}, this.value)">
+      <button class="btn small ghost" onclick="quitarCompra(${idx})" aria-label="Quitar">✕</button>
+    </div>`;
+  }).join("") : '<div class="empty"><span class="big">🍳</span>Elige los platos o menús que vas a cocinar y sale sola la lista.</div>';
+
+  const porSuper = calcularCompra();
+  const claves = SUPERS.filter(s=>porSuper[s.k] && porSuper[s.k].length);
+  const cont = document.getElementById("compra-lista");
+  if(!claves.length){
+    cont.innerHTML = '<div class="empty"><span class="big">🛒</span>Todavía no hay nada que comprar.</div>';
+    return;
+  }
+  const totalLineas = claves.reduce((n,s)=>n+porSuper[s.k].length,0);
+  const hechas = claves.reduce((n,s)=>n+porSuper[s.k].filter(x=>marcados.has(x.a.id)).length,0);
+  let costeTotal = 0, sinPrecio = 0;
+  claves.forEach(s=>porSuper[s.k].forEach(x=>{
+    if(num(x.a.precio)>0) costeTotal += coste(x.a, x.g); else sinPrecio++;
+  }));
+  cont.innerHTML = claves.map(s=>{
+    const costeSuper = porSuper[s.k].reduce((n,x)=>n+coste(x.a,x.g),0);
+    return `
+    <div class="supbloque">
+      <div class="supcab" style="color:${s.c};background:${tint(s.c,.12)}">
+        <span>${s.ic} ${esc(s.n)}</span>
+        <span class="grow"></span>
+        <span class="small num" style="font-weight:400">${costeSuper>0?eur(costeSuper)+" · ":""}${porSuper[s.k].length}</span>
+      </div>
+      ${porSuper[s.k].map(x=>{
+        const ok = marcados.has(x.a.id);
+        const c = coste(x.a, x.g);
+        return `<button class="compraitem ${ok?"ok":""}" onclick="marcar('${x.a.id}')">
+          <span class="check" style="${ok?`border-color:${s.c};background:${tint(s.c,.2)};color:${s.c}`:""}">${ok?"✓":""}</span>
+          <span class="grow nm">${esc(x.a.nombre)}${c>0?` <span class="small muted num">${eur(c)}</span>`:""}</span>
+          <b class="num">${cantidadTexto(x.g, uni(x.a))}</b>
+        </button>`;
+      }).join("")}
+    </div>`;
+  }).join("") + `
+    <div class="row" style="margin-top:4px">
+      <span class="small muted grow">${hechas} de ${totalLineas} ✓${costeTotal>0?" · "+eur(costeTotal):""}</span>
+      <button class="btn small ghost" onclick="copiarLista()">📋 Copiar</button>
+      <button class="btn small danger" onclick="vaciarCompra()">🗑 Vaciar</button>
+    </div>
+    <div class="note">Cantidades en crudo, tal y como pesas los ingredientes en la receta. No incluye lo que ya tengas en casa.${
+      costeTotal>0 && sinPrecio ? " El coste es parcial: "+sinPrecio+" producto(s) sin precio." : ""}</div>`;
+}
+function copiarLista(){
+  const porSuper = calcularCompra();
+  const txt = SUPERS.filter(s=>porSuper[s.k] && porSuper[s.k].length).map(s=>
+    s.n + "\n" + porSuper[s.k].map(x=>"- "+x.a.nombre+": "+cantidadTexto(x.g, uni(x.a))).join("\n")
+  ).join("\n\n");
+  if(!txt){ toast("La lista está vacía"); return; }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>toast("Lista copiada"), ()=>toast("Este navegador no deja copiar al portapapeles"));
+  } else { toast("Este navegador no deja copiar al portapapeles"); }
+}
+function abrirSelectorCompra(tipo){
+  const lista = tipo==="plato"
+    ? DB.alimentos.filter(a=>a.tipo==="plato").sort((a,b)=>a.nombre.localeCompare(b.nombre,"es"))
+    : DB.menus.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre,"es"));
+  if(!lista.length){
+    modal(`<h3>${tipo==="plato"?"🍲 Sin platos":"🍽️ Sin menús"}</h3>
+      <div class="empty">${tipo==="plato"?"Crea antes un plato en la pestaña Alimentos.":"Crea antes un menú en la pestaña Menús."}</div>
+      <div class="sticky-actions"><button class="btn" onclick="cerrarModal()">Cerrar</button></div>`);
+    return;
+  }
+  modal(`<h3>${tipo==="plato"?"🍲 Añadir plato":"🍽️ Añadir menú"}</h3>
+    <div class="picklist">
+      ${lista.map(o=>{
+        const ic = tipo==="plato" ? "🍲" : TIPOS[o.tipo].ic;
+        const col = tipo==="plato" ? "var(--m-comida)" : (o.tipo==="entreno"?"var(--entreno)":"var(--descanso)");
+        const extra = tipo==="plato"
+          ? `${f0(num(o.pesoTotal)/(num(o.raciones)||1))} g/ración`
+          : `${f0(totalMenu(o).kcal)} kcal`;
+        return `<button class="fitem" onclick="addCompra('${tipo}','${o.id}')">
+          <span class="badge" style="background:${col}22">${ic}</span>
+          <span class="grow"><span class="nm">${esc(o.nombre)}</span></span>
+          <span class="num small muted">${extra}</span></button>`;
+      }).join("")}
+    </div>
+    <div class="sticky-actions"><button class="btn" onclick="cerrarModal()">Cerrar</button></div>`);
+}
+
+/* ============ render: objetivos ============ */
+function setObjTipo(t){
+  objTipo = t;
+  document.getElementById("ot-entreno").setAttribute("aria-pressed", String(t==="entreno"));
+  document.getElementById("ot-descanso").setAttribute("aria-pressed", String(t==="descanso"));
+  renderObjetivo();
+}
+function renderObjetivo(){
+  const o = obj(objTipo);
+  const gkg = o.modoProt==="gkg";
+  document.getElementById("o-kcal").value = o.kcal;
+  document.getElementById("o-fibra").value = o.fibra;
+  document.getElementById("o-modoprot").innerHTML =
+    `<button aria-pressed="${!gkg}" onclick="setModoProt('pct')">% del total</button>
+     <button aria-pressed="${gkg}" onclick="setModoProt('gkg')">g por kg</button>`;
+  document.getElementById("o-macros").innerHTML = `
+    <div class="grid5">
+      ${gkg
+        ? `<div class="cell c-p"><label class="f" for="o-gkg">🔴 Proteína g/kg</label>
+             <input id="o-gkg" inputmode="decimal" value="${o.protGkg}" oninput="objDesdePorcentajes()"></div>`
+        : `<div class="cell c-p"><label class="f" for="o-pprot">🔴 Proteína %</label>
+             <input id="o-pprot" inputmode="decimal" value="${o.pProt}" oninput="objDesdePorcentajes()"></div>`}
+      <div class="cell c-h"><label class="f" for="o-phid">🟡 Hidratos %</label><input id="o-phid" inputmode="decimal" value="${o.pHid}" oninput="objDesdePorcentajes()"></div>
+      <div class="cell c-g"><label class="f" for="o-pgra">🟣 Grasas %</label><input id="o-pgra" inputmode="decimal" value="${o.pGra}" oninput="objDesdePorcentajes()"></div>
+      <div class="cell c-f"><label class="f" for="o-fibra2">🟢 Fibra (g)</label><input id="o-fibra2" inputmode="decimal" value="${o.fibra}" oninput="document.getElementById('o-fibra').value=this.value;objDesdePorcentajes()"></div>
+    </div>
+    ${gkg ? `<p class="small muted" style="margin:9px 0 0">Con ${num(DB.perfil.peso)||"—"} kg de peso salen ${f1(num(DB.perfil.peso)*num(o.protGkg))} g de proteína. Los hidratos y las grasas se reparten las calorías que sobran en la proporción que marques.</p>` : ""}`;
+  document.getElementById("o-reparto").innerHTML = MEALS.map(m=>`
+    <div class="row" style="margin-bottom:8px">
+      <span class="badge" style="width:28px;height:28px;font-size:13px;background:${m.c}22">${m.ic}</span>
+      <span class="grow small">${m.n}</span>
+      <input style="width:84px" inputmode="decimal" value="${o.reparto[m.k]}" onchange="obj(objTipo).reparto['${m.k}']=num(this.value);renderObjetivo();guardar()">
+      <span class="muted small">%</span>
+    </div>`).join("");
+  const sumaR = MEALS.reduce((s,m)=>s+num(o.reparto[m.k]),0);
+  document.getElementById("o-reparto-aviso").innerHTML = Math.abs(sumaR-100)<0.01
+    ? '<span style="color:var(--fib)">✓ Suma 100 %.</span>'
+    : `<span style="color:var(--hid)">⚠ Ahora suma ${f1(sumaR)} %. Ajusta hasta 100 % para que las metas por comida cuadren con el día.</span>`;
+  pintarObjetivoCalculo();
+}
+function setModoProt(m){
+  const o = obj(objTipo);
+  if(m==="gkg" && !num(DB.perfil.peso)){
+    toast("Pon antes tu peso en la calculadora de gasto");
+    abrirCalculadora(); return;
+  }
+  o.modoProt = m;
+  if(m==="gkg" && !num(o.protGkg)) o.protGkg = 2;
+  guardar(); renderObjetivo();
+}
+function pintarObjetivoCalculo(){
+  const o = obj(objTipo);
+  const g = objetivoGramos(objTipo);
+  const kcalReales = g.prot*4 + g.hid*4 + g.gra*9;
+  const pP = g.kcal>0 ? g.prot*4/g.kcal*100 : 0;
+  let aviso;
+  if(o.modoProt==="gkg"){
+    aviso = g.prot*4 > g.kcal
+      ? '<span style="color:var(--hid)">⚠ Solo la proteína ya se pasa de las calorías objetivo. Baja los g/kg o sube las kcal.</span>'
+      : `<span class="muted">La proteína sale al ${f1(pP)} % de las calorías.</span>`;
+  } else {
+    const suma = num(o.pProt)+num(o.pHid)+num(o.pGra);
+    aviso = Math.abs(suma-100)<0.01
+      ? '<span style="color:var(--fib)">✓ Los tres porcentajes suman 100 %.</span>'
+      : `<span style="color:var(--hid)">⚠ Suman ${f1(suma)} %. Se reparten igualmente las calorías objetivo, pero revísalo.</span>`;
+  }
+  document.getElementById("o-aviso").innerHTML = aviso;
+  const fila = (ic,n,v,color,extra,last)=>`<div class="row" style="justify-content:space-between;padding:7px 0;${last?"":"border-bottom:1px solid var(--line-soft)"}">
+    <span class="row" style="gap:7px"><i class="dot" style="background:${color}"></i>${ic} ${n}</span>
+    <b class="num" style="color:${color}">${f1(v)} g${extra?` <span class="small muted">${extra}</span>`:""}</b></div>`;
+  const peso = num(DB.perfil.peso);
+  document.getElementById("o-gramos").innerHTML =
+    fila("🔴","Proteína", g.prot, "var(--prot)", peso?f1(g.prot/peso)+" g/kg":"") +
+    fila("🟡","Hidratos", g.hid, "var(--hid)", peso?f1(g.hid/peso)+" g/kg":"") +
+    fila("🟣","Grasas", g.gra, "var(--gra)", peso?f1(g.gra/peso)+" g/kg":"") +
+    fila("🟢","Fibra", g.fib, "var(--fib)", "", true) +
+    `<p class="small muted" style="margin:8px 0 0">Suman ${f0(kcalReales)} kcal de las ${f0(g.kcal)} marcadas.</p>`;
+}
+function objDesdePorcentajes(){
+  const o = obj(objTipo);
+  const g = i => { const e = document.getElementById(i); return e ? e.value : null; };
+  o.kcal  = num(g("o-kcal"));
+  if(o.modoProt==="gkg") o.protGkg = num(g("o-gkg"));
+  else o.pProt = num(g("o-pprot"));
+  o.pHid  = num(g("o-phid"));
+  o.pGra  = num(g("o-pgra"));
+  o.fibra = num(g("o-fibra2") != null ? g("o-fibra2") : g("o-fibra"));
+  pintarObjetivoCalculo(); guardar();
+}
+
+/* --- calculadora de gasto --- */
+function abrirCalculadora(){
+  const p = DB.perfil;
+  modal(`
+    <h3>🧮 Gasto energético estimado</h3>
+    <p class="small muted" style="margin:0 0 11px">Fórmula de Mifflin-St Jeor por un factor de actividad. Es una <b>estimación</b>: el error habitual ronda el 10 %, y en gente muy musculada suele quedarse corta. Lo que manda es cómo evoluciona tu peso en 2-3 semanas.</p>
+    <div class="grid5">
+      <div><label class="f">Sexo</label>
+        <div class="seg plain" id="c-sexo"></div></div>
+      <div><label class="f" for="c-edad">Edad</label><input id="c-edad" inputmode="decimal" value="${p.edad||""}" oninput="calcular()"></div>
+      <div><label class="f" for="c-altura">Altura cm</label><input id="c-altura" inputmode="decimal" value="${p.altura||""}" oninput="calcular()"></div>
+      <div><label class="f" for="c-peso">Peso kg</label><input id="c-peso" inputmode="decimal" value="${p.peso||""}" oninput="calcular()"></div>
+    </div>
+    <label class="f" style="margin-top:11px" for="c-act">Actividad diaria</label>
+    <select id="c-act" onchange="calcular()">
+      ${ACTIVIDAD.map(a=>`<option value="${a.k}" ${num(p.actividad)===a.k?"selected":""}>${a.n} · ×${a.k}</option>`).join("")}
+    </select>
+    <div id="c-res"></div>`);
+  sexoTmp = p.sexo || "h";
+  pintarSexo(); calcular();
+}
+let sexoTmp = "h";
+function pintarSexo(){
+  const c = document.getElementById("c-sexo"); if(!c) return;
+  c.innerHTML = [["h","Hombre"],["m","Mujer"]].map(([k,n])=>
+    `<button aria-pressed="${sexoTmp===k}" onclick="sexoTmp='${k}';pintarSexo();calcular()">${n}</button>`).join("");
+}
+function calcular(){
+  const peso = num(document.getElementById("c-peso").value);
+  const altura = num(document.getElementById("c-altura").value);
+  const edad = num(document.getElementById("c-edad").value);
+  const act = num(document.getElementById("c-act").value);
+  Object.assign(DB.perfil, {sexo:sexoTmp, peso, altura, edad, actividad:act});
+  guardar();
+  const res = document.getElementById("c-res");
+  if(!(peso>0 && altura>0 && edad>0)){
+    res.innerHTML = '<p class="small muted" style="margin-top:12px">Rellena edad, altura y peso.</p>';
+    return;
+  }
+  const tmb = mifflin(sexoTmp, peso, altura, edad);
+  const gasto = tmb*act;
+  res.innerHTML = `
+    <div class="card" style="margin-top:12px">
+      <div class="row" style="justify-content:space-between;padding:5px 0"><span class="small muted">Metabolismo basal</span><b class="num">${f0(tmb)} kcal</b></div>
+      <div class="row" style="justify-content:space-between;padding:5px 0;border-top:1px solid var(--line-soft)">
+        <span class="small muted">Gasto total estimado</span><b class="num" style="color:var(--accent)">${f0(gasto)} kcal</b></div>
+      <p class="small muted" style="margin:9px 0 0">Rango razonable: ${f0(gasto*0.9)} – ${f0(gasto*1.1)} kcal.</p>
+      <div class="row" style="margin-top:11px">
+        <button class="btn small grow" onclick="usarGasto(${Math.round(gasto)},'entreno')">🏋️ Usar en entreno</button>
+        <button class="btn small grow" onclick="usarGasto(${Math.round(gasto)},'descanso')">🌙 Usar en descanso</button>
+      </div>
+    </div>`;
+}
+function usarGasto(kcal, tipo){
+  DB.objetivos[tipo].kcal = kcal;
+  guardar(); cerrarModal(); objTipo = tipo; setObjTipo(tipo);
+  toast("Objetivo de "+TIPOS[tipo].n.toLowerCase()+": "+f0(kcal)+" kcal");
+}
+function copiarObjetivo(){
+  const otro = objTipo==="entreno" ? "descanso" : "entreno";
+  if(!confirm("Se copian las calorías, los porcentajes y el reparto de «"+TIPOS[otro].n+"» sobre «"+TIPOS[objTipo].n+"». ¿Seguir?")) return;
+  DB.objetivos[objTipo] = JSON.parse(JSON.stringify(DB.objetivos[otro]));
+  guardar(); renderObjetivo(); toast("Objetivo copiado");
+}
+
+/* ============ datos ============ */
+function exportar(){
+  const blob = new Blob([JSON.stringify(DB,null,2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const d = new Date();
+  a.href=url; a.download="fitcoock-"+new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)+".json"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  DB.meta.desdeExport = 0;
+  DB.meta.ultimaExport = todayISO();
+  guardar();
+}
+function avisarCopia(){
+  if(DB.meta.desdeExport < 20) return;
+  if(!DB.alimentos.length && !DB.menus.length) return;
+  modal(`
+    <h3>💾 Toca copia de seguridad</h3>
+    <p class="small muted">Llevas ${DB.meta.desdeExport} aperturas sin exportar${DB.meta.ultimaExport?" (la última fue el "+DB.meta.ultimaExport+")":""}.
+    Los datos viven solo en este navegador: si lo limpias o cambias de móvil, se pierden.</p>
+    <div class="sticky-actions">
+      <button class="btn ghost" onclick="posponerCopia()">Ahora no</button>
+      <button class="btn primary" onclick="exportar();cerrarModal()">Exportar copia</button>
+    </div>`);
+}
+function posponerCopia(){ DB.meta.desdeExport = 0; guardar(); cerrarModal(); }
+function importar(ev){
+  const file = ev.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const d = JSON.parse(r.result);
+      if(!d || !Array.isArray(d.alimentos)) throw new Error("formato");
+      if(!confirm("Esto sustituye todos los datos actuales. ¿Seguir?")) return;
+      cargarDatos(d);
+      guardar(); menuAbierto=null; renderAlimentos(); renderMenus(); renderObjetivo(); toast("Datos importados");
+    }catch(e){ toast("El archivo no tiene el formato de FitCoock"); }
+  };
+  r.readAsText(file);
+  ev.target.value="";
+}
+function borrarTodo(){
+  if(!confirm("Se borran alimentos, platos y menús. Los objetivos se mantienen. ¿Seguro?")) return;
+  DB.alimentos=[]; DB.menus=[]; DB.diario={}; DB.compra={items:[],marcados:[]}; menuAbierto=null;
+  guardar(); renderAlimentos(); renderMenus(); renderCompra(); toast("Todo borrado");
+}
+
+/* valores orientativos de tablas genéricas; sustitúyelos por los de cada etiqueta */
+const EJEMPLOS = [
+  ["Pechuga de pollo cruda",165,31,0,3.6,0],
+  ["Arroz blanco crudo",360,7,79,0.9,1.3],
+  ["Pasta seca",360,12,72,1.5,3],
+  ["Patata cruda",77,2,17,0.1,2.2],
+  ["Avena en copos",380,13,60,7,10],
+  ["Huevo entero",143,12.6,0.7,9.5,0],
+  ["Clara de huevo",52,11,0.7,0.2,0],
+  ["Atún al natural (escurrido)",116,26,0,1,0],
+  ["Queso fresco batido 0%",47,7.5,4,0.2,0],
+  ["Leche semidesnatada",46,3.2,4.7,1.6,0],
+  ["Pan integral",250,9.5,40,3.5,6],
+  ["Aceite de oliva",900,0,0,100,0],
+  ["Plátano",89,1.1,20,0.3,2.6],
+  ["Almendras",600,21,5,53,12],
+  ["Lentejas cocidas de bote",90,7,12,0.5,4]
+];
+function cargarEjemplos(){
+  let n=0;
+  EJEMPLOS.forEach(([nombre,kcal,prot,hid,gra,fib])=>{
+    if(DB.alimentos.some(a=>a.nombre.toLowerCase()===nombre.toLowerCase())) return;
+    DB.alimentos.push({id:uid(), tipo:"basico", super:"generico", unidad:"g", precio:0, factor:0, nombre, kcal, prot, hid, gra, fib}); n++;
+  });
+  guardar(); renderAlimentos(); toast(n+" productos añadidos");
+}
+
+/* ============ carga y migración ============ */
+function cargarDatos(d){
+  DB.alimentos = Array.isArray(d.alimentos) ? d.alimentos : [];
+  DB.alimentos.forEach(a=>{
+    if(a.tipo!=="plato" && !SUPERS.some(s=>s.k===a.super)) a.super = "generico";
+    if(a.tipo!=="plato"){
+      if(a.unidad!=="ml") a.unidad = "g";
+      a.precio = num(a.precio);
+      a.factor = num(a.factor);
+    }
+  });
+  DB.meta = {
+    desdeExport: num(d.meta && d.meta.desdeExport),
+    ultimaExport: (d.meta && d.meta.ultimaExport) || null
+  };
+  DB.perfil = Object.assign({sexo:"h", edad:null, altura:null, peso:null, actividad:1.55}, d.perfil||{});
+  if(d.objetivos && d.objetivos.entreno){
+    DB.objetivos = {
+      entreno: Object.assign(objetivoPorDefecto(), d.objetivos.entreno),
+      descanso: Object.assign(objetivoPorDefecto(), d.objetivos.descanso || d.objetivos.entreno)
+    };
+  } else if(d.objetivo){
+    DB.objetivos = {
+      entreno: Object.assign(objetivoPorDefecto(), d.objetivo),
+      descanso: Object.assign(objetivoPorDefecto(), d.objetivo)
+    };
+  } else {
+    DB.objetivos = {entreno:objetivoPorDefecto(), descanso:objetivoPorDefecto()};
+  }
+  ["entreno","descanso"].forEach(t=>{
+    const rep = DB.objetivos[t].reparto || {};
+    MEALS.forEach(m=>{ if(rep[m.k]==null) rep[m.k]=0; });
+    DB.objetivos[t].reparto = rep;
+  });
+  if(Array.isArray(d.menus)){
+    DB.menus = d.menus.map(m=>normalizarMenu(Object.assign({id:uid(), nombre:"Menú", tipo:"entreno"}, m)));
+  } else if(d.menus && typeof d.menus==="object"){
+    DB.menus = Object.keys(d.menus).sort().map(fechaKey=>{
+      const viejo = d.menus[fechaKey] || {};
+      const m = normalizarMenu({id:uid(), nombre:"Menú "+fechaKey, tipo:"entreno", comidas:{}});
+      MEALS.forEach(x=>{ m.comidas[x.k] = Array.isArray(viejo[x.k]) ? viejo[x.k].map(i=>({id:i.id,g:i.g})) : []; });
+      return m;
+    }).filter(m=>MEALS.some(x=>m.comidas[x.k].length));
+  } else {
+    DB.menus = [];
+  }
+  DB.diario = {};
+  if(d.diario && typeof d.diario==="object"){
+    Object.keys(d.diario).forEach(f=>{
+      if(/^\d{4}-\d{2}-\d{2}$/.test(f)) DB.diario[f] = normalizarMenu(Object.assign({tipo:"entreno", origen:null}, d.diario[f]));
+    });
+  }
+  DB.compra = {
+    items: Array.isArray(d.compra && d.compra.items) ? d.compra.items : [],
+    marcados: Array.isArray(d.compra && d.compra.marcados) ? d.compra.marcados : []
+  };
+  DB.v = 6;
+}
+
+/* ============ instalación como app (PWA) ============ */
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("sw.js").catch(e=>console.warn("Service worker no registrado:", e && e.message));
+  });
+}
+
+(async function init(){
+  const raw = await Store.get(KEY);
+  if(raw){
+    try{ cargarDatos(JSON.parse(raw)); }
+    catch(e){ console.error("Datos guardados ilegibles", e); }
+  }
+  recalcPlatos();
+  DB.meta.desdeExport = num(DB.meta.desdeExport) + 1;
+  renderAlimentos(); renderMenus(); renderObjetivo(); renderCompra();
+  guardar();
+  setTimeout(avisarCopia, 900);
+})();
+</script>
+</body>
+</html>
