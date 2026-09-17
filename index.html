@@ -232,7 +232,7 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
         <rect x="11.6" y="12" width="4" height="9" rx="1.4" fill="#B77BFF"/>
         <rect x="16.9" y="1" width="4" height="20" rx="1.4" fill="#3ECF8E"/>
       </svg>
-      <h1>FitCoock</h1><span class="sub">comidas y macros</span>
+      <h1>FitCoock</h1><span class="sub">v1.2 · comidas y macros</span>
     </div>
     <nav role="tablist">
       <button role="tab" id="tab-alimentos" aria-selected="true" onclick="setTab('alimentos')"><i>🥕</i>Alimentos</button>
@@ -329,10 +329,10 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
       </div>
       <input type="file" id="importar" accept="application/json" class="hidden" onchange="importar(event)">
       <div class="row" style="margin-top:8px">
-        <button class="btn grow" onclick="cargarEjemplos()">🧺 Productos de ejemplo</button>
+        <button class="btn grow" onclick="recargarBase()">🧺 Reponer alimentos base</button>
         <button class="btn danger" onclick="borrarTodo()">🗑 Borrar</button>
       </div>
-      <div class="note">Los productos de ejemplo llevan valores orientativos de tablas genéricas. Sustitúyelos por los de la etiqueta de lo que compras.</div>
+      <div class="note">Los alimentos base son los de tu hoja de Drive. Al actualizar la app, los nuevos entran solos. «Reponer» vuelve a meter también los que hayas borrado a mano.</div>
     </div>
   </section>
 
@@ -412,7 +412,7 @@ function objetivoPorDefecto(){
 
 let DB = {
   v:6,
-  meta: {desdeExport:0, ultimaExport:null},
+  meta: {desdeExport:0, ultimaExport:null, baseVistos:[]},
   perfil: {sexo:"h", edad:null, altura:null, peso:null, actividad:1.55},
   alimentos: [],
   menus: [],
@@ -659,7 +659,7 @@ function renderAlimentos(){
   let lista = DB.alimentos.slice();
   if(filtro!=="todos") lista = lista.filter(a=>a.tipo===filtro);
   if(filtroSuper!=="todos") lista = lista.filter(a=>a.tipo!=="plato" && (a.super||"generico")===filtroSuper);
-  if(q) lista = lista.filter(a=>a.nombre.toLowerCase().includes(q) || (a.tipo!=="plato" && sup(a.super).n.toLowerCase().includes(q)));
+  if(q) lista = lista.filter(a=>a.nombre.toLowerCase().includes(q) || String(a.codigo||"").includes(q) || (a.tipo!=="plato" && sup(a.super).n.toLowerCase().includes(q)));
 
   if(ordenAlim==="densidad") lista.sort((a,b)=>densidad(b)-densidad(a));
   else if(ordenAlim==="kcal") lista.sort((a,b)=>num(b.kcal)-num(a.kcal));
@@ -681,7 +681,7 @@ function renderAlimentos(){
     <button class="fitem" onclick="${a.tipo==='plato'?`abrirPlato('${a.id}')`:`abrirAlimento('${a.id}')`}">
       ${badgeDe(a)}
       <span class="grow">
-        <span class="nm">${esc(a.nombre)}${a.tipo==='plato'?'<span class="tag plato">plato</span>':tagSuper(a)}</span>
+        <span class="nm">${a.codigo?`<span class="muted num small">#${esc(a.codigo)}</span> `:""}${esc(a.nombre)}${a.tipo==='plato'?'<span class="tag plato">plato</span>':tagSuper(a)}</span>
         ${pills({prot:a.prot,hid:a.hid,gra:a.gra,fib:a.fib}, true)}
         ${extras.length?`<span class="mps">${extras.join("")}</span>`:""}
       </span>
@@ -695,6 +695,39 @@ function cerrarModal(){ if(typeof pararCamara==="function") pararCamara(); docum
 function modal(html){
   document.getElementById("modal-host").innerHTML =
     '<div class="modal" onclick="if(event.target===this)cerrarModal()"><div class="sheet">'+html+'</div></div>';
+}
+
+/* ============ diálogos propios ============
+   No usamos confirm() ni prompt() del navegador: dentro de un iframe o de una
+   PWA pueden estar bloqueados y devolver "cancelar" sin preguntar nada. */
+let confirmarCb = null, textoCb = null;
+function confirmar(titulo, mensaje, onOk, textoOk, peligro){
+  confirmarCb = onOk;
+  modal(`
+    <h3>${esc(titulo)}</h3>
+    <p class="small muted" style="margin:0 0 4px">${esc(mensaje).replace(/\n/g,"<br>")}</p>
+    <div class="sticky-actions">
+      <button class="btn ghost" onclick="cerrarConfirmar()">Cancelar</button>
+      <button class="btn ${peligro?"danger":"primary"}" onclick="aceptarConfirmar()">${esc(textoOk||"Aceptar")}</button>
+    </div>`);
+}
+function cerrarConfirmar(){ confirmarCb = null; cerrarModal(); }
+function aceptarConfirmar(){ const cb = confirmarCb; confirmarCb = null; cerrarModal(); if(cb) cb(); }
+function pedirTexto(titulo, valor, onOk){
+  textoCb = onOk;
+  modal(`
+    <h3>${esc(titulo)}</h3>
+    <input id="pt-val" value="${esc(valor||"")}">
+    <div class="sticky-actions">
+      <button class="btn ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn primary" onclick="aceptarTexto()">Guardar</button>
+    </div>`);
+  setTimeout(()=>{const e=document.getElementById("pt-val"); if(e){e.focus(); e.select();}},50);
+}
+function aceptarTexto(){
+  const v = (document.getElementById("pt-val").value||"").trim();
+  const cb = textoCb; textoCb = null; cerrarModal();
+  if(cb && v) cb(v);
 }
 
 /* ============ producto ============ */
@@ -789,33 +822,43 @@ function guardarAlimento(id){
     gra:num(document.getElementById("a-gra").value),
     fib:num(document.getElementById("a-fib").value)
   };
-  // nombres parecidos: solo al crear
-  if(!id){
-    const iguales = parecidos(nombre, null);
-    if(iguales.length && !confirm("Ya tienes «"+iguales[0].nombre+"», que se parece mucho.\n¿Crear otro producto de todas formas?")) return;
-  }
-  // coherencia entre las kcal escritas y las que salen de los macros
   const calc = datos.prot*4 + datos.hid*4 + datos.gra*9 + datos.fib*2;
-  const desvio = Math.abs(calc - datos.kcal);
-  if(datos.kcal > 0 && calc > 0 && desvio > Math.max(15, datos.kcal*0.12)){
-    if(!confirm("Las calorías no cuadran con los macros.\n\nHas escrito "+f0(datos.kcal)+" kcal.\nDe los macros salen unas "+f0(calc)+" kcal (4/4/9 y 2 por la fibra).\n\nSuele ser un dedazo. ¿Guardar igualmente?")) return;
+  const descuadra = datos.kcal > 0 && calc > 0 && Math.abs(calc-datos.kcal) > Math.max(15, datos.kcal*0.12);
+  const iguales = id ? [] : parecidos(nombre, null);
+  if(iguales.length){
+    confirmar("Nombre parecido",
+      "Ya tienes «"+iguales[0].nombre+"».\n¿Creamos otro producto igualmente?",
+      ()=>{ if(descuadra) avisoKcal(id,datos,calc); else guardarAlimentoYa(id,datos); }, "Crear igualmente");
+    return;
   }
+  if(descuadra){ avisoKcal(id,datos,calc); return; }
+  guardarAlimentoYa(id,datos);
+}
+function avisoKcal(id, datos, calc){
+  confirmar("Las calorías no cuadran",
+    "Has escrito "+f0(datos.kcal)+" kcal.\nDe los macros salen unas "+f0(calc)+" kcal (4/4/9 y 2 por la fibra).\n\nSuele ser un dedazo.",
+    ()=>guardarAlimentoYa(id,datos), "Guardar igualmente");
+}
+function guardarAlimentoYa(id, datos){
   if(id){ Object.assign(byId(id), datos); }
   else { DB.alimentos.push(Object.assign({id:uid(), tipo:"basico"}, datos)); }
   recalcPlatos(); guardar(); cerrarModal(); renderAlimentos();
   toast(id?"Producto actualizado":"Producto añadido");
 }
 function borrarAlimento(id){
+  const al = byId(id);
   const usado = DB.alimentos.some(p=>p.tipo==="plato" && (p.ingredientes||[]).some(i=>i.id===id));
   const enMenus = DB.menus.concat(Object.values(DB.diario)).some(m=>MEALS.some(x=>(m.comidas[x.k]||[]).some(i=>!i.libre && i.id===id)));
-  let aviso = "¿Borrar este alimento?";
+  let aviso = al ? "Se borra «"+al.nombre+"»." : "Se borra este alimento.";
   if(usado||enMenus) aviso += "\nSe usa en " + [usado?"algún plato":null, enMenus?"algún menú":null].filter(Boolean).join(" y ") + ", donde dejará de contar.";
-  if(!confirm(aviso)) return;
+  confirmar("🗑 Borrar alimento", aviso, ()=>borrarAlimentoYa(id), "Borrar", true);
+}
+function borrarAlimentoYa(id){
   DB.alimentos = DB.alimentos.filter(a=>a.id!==id);
   DB.alimentos.forEach(p=>{ if(p.tipo==="plato") p.ingredientes=(p.ingredientes||[]).filter(i=>i.id!==id); });
   DB.menus.forEach(m=>MEALS.forEach(x=>{ m.comidas[x.k]=(m.comidas[x.k]||[]).filter(i=>i.libre||i.id!==id); }));
   Object.values(DB.diario).forEach(m=>MEALS.forEach(x=>{ m.comidas[x.k]=(m.comidas[x.k]||[]).filter(i=>i.libre||i.id!==id); }));
-  recalcPlatos(); guardar(); cerrarModal(); renderAlimentos(); toast("Borrado");
+  recalcPlatos(); guardar(); renderAlimentos(); renderMenus(); renderCompra(); toast("Borrado");
 }
 
 /* ============ altas rápidas: etiqueta pegada y código de barras ============ */
@@ -1242,9 +1285,11 @@ function duplicarMenu(id){
   DB.menus.push(copia); menuAbierto = copia.id; guardar(); renderMenus(); toast("Menú duplicado");
 }
 function borrarMenu(id){
-  if(!confirm("¿Borrar este menú?")) return;
-  DB.menus = DB.menus.filter(m=>m.id!==id);
-  menuAbierto = null; guardar(); renderMenus(); toast("Menú borrado");
+  const mm = menuById(id);
+  confirmar("🗑 Borrar menú", mm?"Se borra «"+mm.nombre+"». Los días del diario que lo copiaron no se tocan.":"", ()=>{
+    DB.menus = DB.menus.filter(x=>x.id!==id);
+    menuAbierto = null; guardar(); renderMenus(); toast("Menú borrado");
+  }, "Borrar", true);
 }
 function cambiarTipoMenu(tipo){
   const m = menuActual(); if(!m) return;
@@ -1293,19 +1338,24 @@ function cargarMenuEnDia(){
 function elegirMenuDia(id){
   const m = menuById(id); if(!m) return;
   const d = diaActual();
-  if(d && MEALS.some(x=>(d.comidas[x.k]||[]).length) && !confirm("Se sustituye lo que ya tienes apuntado en este día. ¿Seguir?")) return;
+  if(d && MEALS.some(x=>(d.comidas[x.k]||[]).length)){
+    confirmar("Sustituir el día", "Se borra lo apuntado en este día y se copia «"+m.nombre+"».",
+      ()=>{ crearDia(m); toast("Menú cargado en el día"); }, "Sustituir");
+    return;
+  }
   crearDia(m); cerrarModal(); toast("Menú cargado en el día");
 }
 function guardarDiaComoMenu(){
   const d = diaActual(); if(!d) return;
-  const nombre = prompt("Nombre del nuevo menú:", d.origen ? d.origen+" (variante)" : "Menú "+fechaDiario);
-  if(!nombre) return;
-  DB.menus.push(normalizarMenu({id:uid(), nombre:nombre.trim(), tipo:d.tipo, comidas:copiaComidas(d.comidas)}));
-  guardar(); toast("Guardado en la biblioteca");
+  pedirTexto("💾 Guardar como menú", d.origen ? d.origen+" (variante)" : "Menú "+fechaDiario, nombre=>{
+    DB.menus.push(normalizarMenu({id:uid(), nombre, tipo:d.tipo, comidas:copiaComidas(d.comidas)}));
+    guardar(); toast("Guardado en la biblioteca");
+  });
 }
 function vaciarDia(){
-  if(!confirm("¿Vaciar este día?")) return;
-  delete DB.diario[fechaDiario]; guardar(); renderDiario();
+  confirmar("🗑 Vaciar día", "Se borra lo apuntado el "+fechaCorta(fechaDiario)+".", ()=>{
+    delete DB.diario[fechaDiario]; guardar(); renderDiario(); toast("Día vaciado");
+  }, "Vaciar", true);
 }
 function renderDiario(){
   const cont = document.getElementById("diario");
@@ -1763,8 +1813,9 @@ function quitarCompra(idx){
   DB.compra.items.splice(idx,1); guardar(); renderCompra();
 }
 function vaciarCompra(){
-  if(!confirm("¿Vaciar la selección y la lista?")) return;
-  DB.compra.items = []; DB.compra.marcados = []; guardar(); renderCompra();
+  confirmar("🗑 Vaciar la compra", "Se quitan los platos y menús elegidos y las marcas de la lista.", ()=>{
+    DB.compra.items = []; DB.compra.marcados = []; guardar(); renderCompra(); toast("Lista vaciada");
+  }, "Vaciar", true);
 }
 function marcar(id){
   const s = new Set(DB.compra.marcados||[]);
@@ -2019,9 +2070,11 @@ function usarGasto(kcal, tipo){
 }
 function copiarObjetivo(){
   const otro = objTipo==="entreno" ? "descanso" : "entreno";
-  if(!confirm("Se copian las calorías, los porcentajes y el reparto de «"+TIPOS[otro].n+"» sobre «"+TIPOS[objTipo].n+"». ¿Seguir?")) return;
-  DB.objetivos[objTipo] = JSON.parse(JSON.stringify(DB.objetivos[otro]));
-  guardar(); renderObjetivo(); toast("Objetivo copiado");
+  confirmar("⇄ Copiar objetivo",
+    "Se copian las calorías, los porcentajes y el reparto de «"+TIPOS[otro].n+"» sobre «"+TIPOS[objTipo].n+"».", ()=>{
+      DB.objetivos[objTipo] = JSON.parse(JSON.stringify(DB.objetivos[otro]));
+      guardar(); renderObjetivo(); toast("Objetivo copiado");
+    }, "Copiar");
 }
 
 /* ============ datos ============ */
@@ -2056,45 +2109,134 @@ function importar(ev){
     try{
       const d = JSON.parse(r.result);
       if(!d || !Array.isArray(d.alimentos)) throw new Error("formato");
-      if(!confirm("Esto sustituye todos los datos actuales. ¿Seguir?")) return;
-      cargarDatos(d);
-      guardar(); menuAbierto=null; renderAlimentos(); renderMenus(); renderObjetivo(); toast("Datos importados");
+      confirmar("⬆ Importar copia", "Sustituye todos los datos actuales por los del archivo.", ()=>{
+        cargarDatos(d);
+        guardar(); menuAbierto=null;
+        renderAlimentos(); renderMenus(); renderObjetivo(); renderCompra(); toast("Datos importados");
+      }, "Importar");
     }catch(e){ toast("El archivo no tiene el formato de FitCoock"); }
   };
   r.readAsText(file);
   ev.target.value="";
 }
 function borrarTodo(){
-  if(!confirm("Se borran alimentos, platos y menús. Los objetivos se mantienen. ¿Seguro?")) return;
-  DB.alimentos=[]; DB.menus=[]; DB.diario={}; DB.compra={items:[],marcados:[]}; menuAbierto=null;
-  guardar(); renderAlimentos(); renderMenus(); renderCompra(); toast("Todo borrado");
+  confirmar("🗑 Borrar todo",
+    "Se borran alimentos, platos, menús, diario y lista de la compra. Los objetivos y tu perfil se mantienen.\nExporta una copia antes si no estás seguro.", ()=>{
+      DB.alimentos=[]; DB.menus=[]; DB.diario={}; DB.compra={items:[],marcados:[]};
+      DB.meta.baseVistos=[]; menuAbierto=null;
+      guardar(); renderAlimentos(); renderMenus(); renderCompra(); toast("Todo borrado");
+    }, "Borrar todo", true);
 }
 
-/* valores orientativos de tablas genéricas; sustitúyelos por los de cada etiqueta */
-const EJEMPLOS = [
-  ["Pechuga de pollo cruda",165,31,0,3.6,0],
-  ["Arroz blanco crudo",360,7,79,0.9,1.3],
-  ["Pasta seca",360,12,72,1.5,3],
-  ["Patata cruda",77,2,17,0.1,2.2],
-  ["Avena en copos",380,13,60,7,10],
-  ["Huevo entero",143,12.6,0.7,9.5,0],
-  ["Clara de huevo",52,11,0.7,0.2,0],
-  ["Atún al natural (escurrido)",116,26,0,1,0],
-  ["Queso fresco batido 0%",47,7.5,4,0.2,0],
-  ["Leche semidesnatada",46,3.2,4.7,1.6,0],
-  ["Pan integral",250,9.5,40,3.5,6],
-  ["Aceite de oliva",900,0,0,100,0],
-  ["Plátano",89,1.1,20,0.3,2.6],
-  ["Almendras",600,21,5,53,12],
-  ["Lentejas cocidas de bote",90,7,12,0.5,4]
+/* Alimentos base: los de la hoja "FITCOOCK - ALIMENTOS" de Iván.
+   Orden: código, nombre, supermercado, unidad, kcal, grasas, hidratos, fibra, proteínas, precio, factor */
+const BASE = [
+  ["001","Gelatina sabor a frutos silvestres +Proteínas Hacendado","mercadona","g",40,0,0,0,10,3.87,0],
+  ["002","Natillas sabor vainilla +Proteínas Hacendado","mercadona","g",77,1.5,5.8,0,10,3.64,0],
+  ["003","Queso fresco batido desnatado 0% MG Hacendado","mercadona","g",46,0.5,3.5,0,8,2.2,0],
+  ["004","Pan de molde blanco natural rústico Hacendado","mercadona","g",265,4.5,47,1.2,9.1,2.36,0],
+  ["005","Pan de molde espelta 100% integral Hacendado","mercadona","g",240,4.1,35,7.4,12,3,0],
+  ["006","Tortitas de legumbres y arroz Hacendado","mercadona","g",366,3.1,55,7.9,25,16.05,0],
+  ["007","Tortitas de arroz Hacendado","mercadona","g",363,2.8,75,1.7,8.5,8.8,0],
+  ["008","Arroz redondo SOS","generico","g",351,1.3,77,1.3,7.3,1.88,2.5],
+  ["009","Pasta tortiglioni Armando","mercadona","g",354,1.3,70.2,2.7,14,2.8,2.35],
+  ["010","Pasta fusilli Armando","mercadona","g",354,1.3,70.2,2.7,14,2.8,2.35],
+  ["011","Pasta fusilli 100% lentejas rojas Felicia","mercadona","g",334,1.7,50,7.6,26,6.6,2.25],
+  ["012","Pajaritas vegetales Hacendado","mercadona","g",347,1.5,68,4.2,13,1.8,2.35],
+  ["013","Aceite de oliva virgen extra","generico","ml",819,91,0,0,0,0,0],
+  ["014","Aceite de girasol refinado","generico","ml",826,92,0,0,0,0,0],
+  ["015","Salsa mayonesa Original Ligeresa","mercadona","ml",178,16,7.5,0,0.5,6.1,0],
+  ["016","Tomate frito sin azúcares añadidos Hacendado","mercadona","g",65,3.5,6.5,0,1.5,1.96,0],
+  ["017","Anacardo natural Hacendado","mercadona","g",604,48.2,19,3.6,21.9,13.5,0],
+  ["018","Cacahuete tostado Hacendado 0% sal","mercadona","g",617,51,8.8,9.4,26,5.25,0],
+  ["019","Nachos Hacendado","mercadona","g",488,25,59,5,5,6,0],
+  ["020","Filetes pechuga de pavo marinados extra tiernos","mercadona","g",88,0.8,1,0,20,9,0.8],
+  ["021","Filetes pechuga de pavo","mercadona","g",103,0.9,0,0,24,8.45,0.8],
+  ["022","Filetes pechuga de pollo corte fino","mercadona","g",108,1.8,0.5,0,22,7.7,0.75],
+  ["023","Filetes pechuga de pollo","mercadona","g",106,1.1,0.5,0,24,7.3,0.75],
+  ["024","Filetes pechuga de pollo finas hierbas marinadas","mercadona","g",86.5,1.1,1.2,0,17.6,8.2,0.75],
+  ["025","Filetes pechuga de pollo extra tiernos","mercadona","g",108,1.3,0.7,0,23.4,7.3,0.75],
+  ["026","Lagrimitas de pollo al limón empanadas","mercadona","g",236,11.6,17.1,0,15.4,8.6,0.9],
+  ["027","Alas de pollo adobadas picantes","mercadona","g",172,9.6,3.3,0,18,6.4,0.9],
+  ["028","Preparado de carne picada vacuno y cerdo","mercadona","g",195,12,2,0,17,8,0.77],
+  ["029","Preparado de carne picada vacuno","mercadona","g",190,12,2.4,0,18,10.8,0.72],
+  ["030","Albóndigas de cerdo","mercadona","g",232,19,0.5,0,16,5.4,0.77],
+  ["031","Fiambre de magro de cerdo adobado","mercadona","g",86,2.5,4.1,0,12,7.5,0.7],
+  ["032","Fiambre de pechuga de pavo adobada","mercadona","g",74,0.8,1.5,0,15.3,10.2,0.8],
+  ["033","Muesli Crunchy Hacendado con legumbres","mercadona","g",407,14,37,20,24,6.6,0],
+  ["034","Muesli Crunchy Hacendado sin azúcares añadidos","mercadona","g",401,12,52,23,8.8,3.8,0],
+  ["035","Cereales avena Crunchy Hacendado 85% avena integral","mercadona","g",390,5.8,66,11,13,4.5,0],
+  ["036","Galletas María dorada Hacendado","mercadona","g",443,14,71,2.2,7,1.6,0],
+  ["037","Tiras de pechuga pollo 99% al horno Hacendado","mercadona","g",107,1.2,0.6,0,23.4,16,0],
+  ["038","Pechuga 92% pavo Hacendado lonchas","mercadona","g",89,1.3,1,0,19.5,14.25,0],
+  ["039","Jamón cocido Hacendado lonchas","mercadona","g",102,2.5,0.9,0,19,11.25,0],
+  ["040","Bacón ahumado Monells lonchas","mercadona","g",289,25,1,0,15,9.1,0.45],
+  ["041","Bacón Hacendado cintas","mercadona","g",293,25,0.5,0,16.6,7.5,0.45],
+  ["042","Queso grana padano Zanetti","mercadona","g",398,29,0,0,33,15.9,0],
+  ["043","Queso semicurado de cabra Hacendado","mercadona","g",419,35.1,2.5,0,23.2,16.3,0],
+  ["044","Queso lonchas cremoso light de vaca Hacendado","mercadona","g",267,17,1.6,0,27,9.6,0],
+  ["045","Queso lonchas fundido burger mezcla Hacendado","mercadona","g",240,15.7,12.2,0,12.4,6.3,0],
+  ["046","Queso rallado mozzarella Hacendado","mercadona","g",283,21,2.5,0,21,8,0],
+  ["047","Queso en polvo especial pasta mezcla Hacendado","mercadona","g",292,16,17,0,20,8.3,0],
+  ["048","Queso untar light Philadelphia","mercadona","g",154,12,4.4,0,5.9,10.7,0],
+  ["049","Queso untar light de vaca Hacendado","mercadona","g",130,8.3,4.8,0,9,4.6,0],
+  ["050","Queso feta mezcla Hacendado en dados","mercadona","g",277,23.2,1,0,16,16,0],
+  ["051","Queso precortado de cabra Hacendado","mercadona","g",270,23,1.7,0,14,14,0],
+  ["052","Arroz para microondas Hacendado ultracongelado","mercadona","g",126,0.3,28,0.4,2.7,1.9,0],
+  ["053","Ajo troceado Hacendado ultracongelado","mercadona","g",148,3.2,24,1.2,5.1,6.3,0],
+  ["054","Cebolla troceada Hacendado ultracongelada","mercadona","g",42,0.2,7.9,1.8,1.2,2.1,0],
+  ["055","Filetes de merluza al huevo Hacendado ultracongelados","mercadona","g",189,10,14,0,11,8.58,0],
+  ["056","Atún claro al natural Hacendado","mercadona","g",98,1.2,0.9,0,21,11.6,0],
+  ["057","Huevos grandes L","mercadona","g",141,10,0.7,0,12,3.8,0],
+  ["058","Claras de huevo líquidas pasteurizadas","mercadona","ml",42,0.5,0.5,0,11,5.6,0],
+  ["059","Margarina Tulipán Original","mercadona","g",530,59,0.5,0,0.5,7.25,0],
+  ["060","Margarina ligera Hacendado","mercadona","g",368,40,1.9,0,0.5,2.9,0],
+  ["061","Nata ligera para cocinar Hacendado","mercadona","ml",163,15,5,0,2,3,0],
+  ["062","Leche evaporada Hacendado","mercadona","ml",109,4,11,0,7.4,2.76,0],
+  ["063","Postre lácteo natural +Proteínas 12 g 0% MG Hacendado","mercadona","g",52,0.5,3.1,0,10,2.9,0],
+  ["064","Napolitana mixta","generico","g",324,19,28,0,8.1,6.9,0],
+  ["065","Harina de trigo","generico","g",350,1.3,73,3,10,0.72,0],
+  ["066","Tortillas de trigo Hacendado","mercadona","g",294,5.8,50,4.2,8.4,3.1,0],
+  ["067","Tortillas de avena 51% Hacendado","mercadona","g",287,6,40,5.4,15,5.1,0],
+  ["068","Maxi pan de burger Hacendado","mercadona","g",270,4.5,45,3.5,10,2.8,0],
+  ["069","Pan hot dog Hacendado","mercadona","g",270,4,48,2.5,9,2.72,0],
+  ["070","Pan rallado Hacendado","mercadona","g",359,0.9,76,3.5,10,1.1,0],
+  ["071","Pizza jamón y queso tarradellas","generico","g",224,7.5,25.2,0,14,6,0],
+  ["072","Pollo al curry Hacendado con arroz basmati","mercadona","g",136,5,14,1,8.2,10.17,0],
+  ["073","Patatas bravas con allioli y salsa picante Hacendado","mercadona","g",168,11,14,0,2,5.5,0],
+  ["074","Pan de molde alto en proteínas El Molino de Dia 400 g","dia","g",267,9.2,22.4,7.3,20.1,4.98,0],
+  ["075","Postre gelificado sabor frutas alto en proteínas Dia","dia","g",40,0,0,0,10,3.88,0],
+  ["076","Natillas sabor vainilla alta en proteínas Dia","dia","g",82,1.3,7.7,0,10,3.58,0],
+  ["077","Leche semidesnatada Dia","dia","ml",46,1.6,4.7,0,3.1,0.84,0],
+  ["078","Pasta volantinas con queso Dia","dia","g",396,8.5,65,0,13.6,6.83,0],
+  ["079","Patatas prefritas corte grueso Hacendado ultracongeladas","mercadona","g",116,2.4,20,2.7,2.1,1.5,0],
+  ["080","Patatas prefritas corte fino Hacendado ultracongeladas","mercadona","g",146,5.4,21,2,2.4,1.85,0],
+  ["081","Bastones de batata Hacendado ultracongelada","mercadona","g",163,5,26,3.2,1.6,3.5,0],
+  ["082","Patatas prefritas gajo Hacendado ultracongeladas","mercadona","g",150,6.1,20,2.3,2.5,2.2,0],
+  ["083","Patatas cocidas bote","generico","g",53,0,11,1.5,1.2,4.75,0]
 ];
-function cargarEjemplos(){
-  let n=0;
-  EJEMPLOS.forEach(([nombre,kcal,prot,hid,gra,fib])=>{
-    if(DB.alimentos.some(a=>a.nombre.toLowerCase()===nombre.toLowerCase())) return;
-    DB.alimentos.push({id:uid(), tipo:"basico", super:"generico", unidad:"g", precio:0, factor:0, nombre, kcal, prot, hid, gra, fib}); n++;
+/* Mete los alimentos de BASE que este dispositivo aún no ha visto nunca.
+   Se ejecuta en cada arranque: al ampliar BASE en una versión nueva, los nuevos
+   entran solos sin tocar nada de lo que ya tengas. Lo que borres a mano queda
+   marcado como visto, así que no reaparece. */
+function sincronizarBase(todos){
+  const vistos = new Set(todos ? [] : (DB.meta.baseVistos||[]));
+  let n = 0;
+  BASE.forEach(([codigo,nombre,sup,unidad,kcal,gra,hid,fib,prot,precio,factor])=>{
+    if(vistos.has(codigo)) return;
+    vistos.add(codigo);
+    if(DB.alimentos.some(a=>a.tipo!=="plato" && (a.codigo===codigo || clave(a.nombre)===clave(nombre)))) return;
+    DB.alimentos.push({id:uid(), tipo:"basico", codigo, nombre, super:sup, unidad,
+                       kcal, gra, hid, fib, prot, precio, factor});
+    n++;
   });
-  guardar(); renderAlimentos(); toast(n+" productos añadidos");
+  DB.meta.baseVistos = Array.from(new Set((DB.meta.baseVistos||[]).concat(Array.from(vistos))));
+  return n;
+}
+function recargarBase(){
+  const n = sincronizarBase(true);
+  recalcPlatos(); guardar(); renderAlimentos();
+  toast(n ? n+" alimentos repuestos" : "Ya los tienes todos");
 }
 
 /* ============ carga y migración ============ */
@@ -2110,7 +2252,8 @@ function cargarDatos(d){
   });
   DB.meta = {
     desdeExport: num(d.meta && d.meta.desdeExport),
-    ultimaExport: (d.meta && d.meta.ultimaExport) || null
+    ultimaExport: (d.meta && d.meta.ultimaExport) || null,
+    baseVistos: Array.isArray(d.meta && d.meta.baseVistos) ? d.meta.baseVistos : []
   };
   DB.perfil = Object.assign({sexo:"h", edad:null, altura:null, peso:null, actividad:1.55}, d.perfil||{});
   if(d.objetivos && d.objetivos.entreno){
@@ -2169,6 +2312,7 @@ if("serviceWorker" in navigator && location.protocol.startsWith("http")){
     try{ cargarDatos(JSON.parse(raw)); }
     catch(e){ console.error("Datos guardados ilegibles", e); }
   }
+  sincronizarBase(false);
   recalcPlatos();
   DB.meta.desdeExport = num(DB.meta.desdeExport) + 1;
   renderAlimentos(); renderMenus(); renderObjetivo(); renderCompra();
