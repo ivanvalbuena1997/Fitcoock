@@ -22,10 +22,6 @@
   --muted:#8496A5;
 
   --accent:#34D3C0;
-  --entreno:#34D3C0;
-  --entreno-bg:rgba(52,211,192,.14);
-  --descanso:#A78BFA;
-  --descanso-bg:rgba(167,139,250,.14);
 
   --prot:#FF6B6B;  --prot-bg:rgba(255,107,107,.14);
   --hid:#FFB020;   --hid-bg:rgba(255,176,32,.14);
@@ -121,8 +117,6 @@ label.f{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
 .seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .seg button{flex:1;background:none;border:none;color:var(--muted);padding:10px 6px;font-size:13.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
 .seg button + button{border-left:1px solid var(--line)}
-.seg button[aria-pressed="true"][data-t="entreno"]{background:var(--entreno-bg);color:var(--entreno);font-weight:650}
-.seg button[aria-pressed="true"][data-t="descanso"]{background:var(--descanso-bg);color:var(--descanso);font-weight:650}
 .seg.plain button[aria-pressed="true"]{background:var(--surface2);color:var(--text);font-weight:650;box-shadow:inset 0 -2px 0 var(--m-comida)}
 .datebar{display:flex;align-items:center;gap:8px;margin-top:13px}
 .datebar .d{flex:1;text-align:center;font-size:14.5px}
@@ -151,8 +145,6 @@ label.f{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
 }
 .tag{font-size:10.5px;border-radius:5px;padding:2px 6px;margin-left:6px;vertical-align:2px;white-space:nowrap}
 .tag.plato{color:var(--m-comida);background:rgba(255,138,61,.14)}
-.tag.entreno{color:var(--entreno);background:var(--entreno-bg)}
-.tag.descanso{color:var(--descanso);background:var(--descanso-bg)}
 .kcalbig{font-size:15.5px;text-align:right;line-height:1.15;font-weight:600}
 .kcalbig small{display:block;font-size:10.5px;color:var(--muted);font-weight:400}
 .kcalbig small.up{color:var(--prot)} .kcalbig small.down{color:var(--fib)}
@@ -164,8 +156,6 @@ label.f{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
 .supsel button{border:1px solid var(--line);background:none;color:var(--muted);border-radius:20px;padding:7px 12px;font-size:12.5px;cursor:pointer}
 .chip{background:none;border:1px solid var(--line);color:var(--muted);border-radius:20px;padding:6px 12px;font-size:12.5px;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--surface2);color:var(--text);border-color:var(--line)}
-#mf-entreno[aria-pressed="true"]{background:var(--entreno-bg);color:var(--entreno);border-color:transparent}
-#mf-descanso[aria-pressed="true"]{background:var(--descanso-bg);color:var(--descanso);border-color:transparent}
 
 .ruler{margin:13px 0 2px}
 .ruler .top{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;margin-bottom:6px}
@@ -232,7 +222,7 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
         <rect x="11.6" y="12" width="4" height="9" rx="1.4" fill="#B77BFF"/>
         <rect x="16.9" y="1" width="4" height="20" rx="1.4" fill="#3ECF8E"/>
       </svg>
-      <h1>FitCoock</h1><span class="sub">v1.2 · comidas y macros</span>
+      <h1>FitCoock</h1><span class="sub">v1.3.1 · comidas y macros</span>
     </div>
     <nav role="tablist">
       <button role="tab" id="tab-alimentos" aria-selected="true" onclick="setTab('alimentos')"><i>🥕</i>Alimentos</button>
@@ -287,11 +277,6 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
 
   <!-- ================= OBJETIVOS ================= -->
   <section id="v-objetivo" class="hidden">
-    <div class="seg" style="margin-top:14px">
-      <button data-t="entreno" id="ot-entreno" aria-pressed="true" onclick="setObjTipo('entreno')">🏋️ Entrenamiento</button>
-      <button data-t="descanso" id="ot-descanso" aria-pressed="false" onclick="setObjTipo('descanso')">🌙 Descanso</button>
-    </div>
-
     <h2>🎯 Calorías y reparto</h2>
     <div class="card">
       <div class="row" style="margin-bottom:9px">
@@ -315,10 +300,6 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
       <p class="small muted" style="margin:0 0 11px">% de las calorías del día en cada comida. Aparece como referencia dentro de cada menú de este tipo.</p>
       <div id="o-reparto"></div>
       <div id="o-reparto-aviso" class="small" style="margin-top:7px"></div>
-    </div>
-
-    <div class="row" style="margin-top:10px">
-      <button class="btn grow small" onclick="copiarObjetivo()">⇄ Copiar del otro tipo de día</button>
     </div>
 
     <h2>💾 Datos</h2>
@@ -386,7 +367,6 @@ const MEALS = [
   {k:"merienda", n:"Merienda", ic:"🍏", c:"var(--m-merienda)"},
   {k:"cena",     n:"Cena",     ic:"🌙", c:"var(--m-cena)"}
 ];
-const TIPOS = {entreno:{n:"Entrenamiento", ic:"🏋️"}, descanso:{n:"Descanso", ic:"🌙"}};
 
 /* Supermercados. Para añadir uno nuevo basta con una línea más aquí. */
 const SUPERS = [
@@ -411,25 +391,23 @@ function objetivoPorDefecto(){
 }
 
 let DB = {
-  v:6,
+  v:7,
   meta: {desdeExport:0, ultimaExport:null, baseVistos:[]},
   perfil: {sexo:"h", edad:null, altura:null, peso:null, actividad:1.55},
   alimentos: [],
   menus: [],
   diario: {},
   compra: {items:[], marcados:[]},
-  objetivos: {entreno:objetivoPorDefecto(), descanso:objetivoPorDefecto()}
+  objetivo: objetivoPorDefecto()
 };
 
 let filtro = "todos";
 let ordenAlim = "nombre";
 let filtroSuper = "todos";
-let filtroMenu = "todos";
 let vistaMenus = "biblioteca";
 let fechaDiario = todayISO();
 let lunesSemana = lunesDe(todayISO());
 let menuAbierto = null;
-let objTipo = "entreno";
 let saveTimer = null;
 let avisadoSinGuardado = false;
 
@@ -552,7 +530,6 @@ function totalMenu(m){
 function normalizarMenu(m){
   if(!m.comidas) m.comidas = {};
   MEALS.forEach(x=>{ if(!Array.isArray(m.comidas[x.k])) m.comidas[x.k]=[]; });
-  if(!TIPOS[m.tipo]) m.tipo = "entreno";
   return m;
 }
 function recalcPlatos(){
@@ -592,9 +569,9 @@ function dependeDe(id, target, visto){
 }
 
 /* ============ objetivos ============ */
-function obj(tipo){ return DB.objetivos[tipo] || DB.objetivos.entreno; }
-function objetivoGramos(tipo){
-  const o = obj(tipo);
+function obj(){ return DB.objetivo; }
+function objetivoGramos(){
+  const o = DB.objetivo;
   const kcal = num(o.kcal);
   const prot = o.modoProt==="gkg"
     ? num(DB.perfil.peso) * num(o.protGkg)
@@ -1147,9 +1124,9 @@ function renderSemana(){
   const filas = dias.map(f=>{
     const d = DB.diario[f];
     if(!d || !MEALS.some(x=>(d.comidas[x.k]||[]).length)) return {f, vacio:true};
-    const t = totalMenu(d), o = objetivoGramos(d.tipo);
+    const t = totalMenu(d), o = objetivoGramos();
     const pct = o.kcal>0 ? t.kcal/o.kcal*100 : 0;
-    return {f, vacio:false, t, o, pct, tipo:d.tipo};
+    return {f, vacio:false, t, o, pct};
   });
   const conDatos = filas.filter(x=>!x.vacio);
   const media = k => conDatos.length ? conDatos.reduce((s,x)=>s+x.t[k],0)/conDatos.length : 0;
@@ -1209,7 +1186,6 @@ function menuActual(){
 function refrescarEditor(){
   if(vistaMenus==="diario") renderDiario(); else renderDetalleMenu();
 }
-function setFiltroMenu(f){ filtroMenu=f; renderMenus(); }
 
 function renderMenus(){
   const lista = document.getElementById("menus-lista");
@@ -1238,27 +1214,20 @@ function renderMenus(){
   menuAbierto = null;
   det.classList.add("hidden"); det.innerHTML=""; lista.classList.remove("hidden");
 
-  let ms = DB.menus.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre,"es"));
-  if(filtroMenu!=="todos") ms = ms.filter(m=>m.tipo===filtroMenu);
+  const ms = DB.menus.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre,"es"));
 
   lista.innerHTML = `
-    <div class="chips">
-      <button class="chip" aria-pressed="${filtroMenu==="todos"}" onclick="setFiltroMenu('todos')">Todos</button>
-      <button class="chip" id="mf-entreno" aria-pressed="${filtroMenu==="entreno"}" onclick="setFiltroMenu('entreno')">🏋️ Entreno</button>
-      <button class="chip" id="mf-descanso" aria-pressed="${filtroMenu==="descanso"}" onclick="setFiltroMenu('descanso')">🌙 Descanso</button>
-    </div>
-    <button class="btn primary" style="width:100%;margin-bottom:13px" onclick="nuevoMenu()">＋ Nuevo menú</button>
+    <button class="btn primary" style="width:100%;margin:12px 0 13px" onclick="nuevoMenu()">＋ Nuevo menú</button>
     <div class="flist">
       ${ms.length ? ms.map(m=>{
         const t = totalMenu(m);
-        const o = objetivoGramos(m.tipo);
+        const o = objetivoGramos();
         const dif = t.kcal - o.kcal;
-        const col = m.tipo==="entreno" ? "var(--entreno)" : "var(--descanso)";
-        const bg  = m.tipo==="entreno" ? "var(--entreno-bg)" : "var(--descanso-bg)";
+        const col = "var(--accent)";
         return `<button class="fitem" onclick="abrirMenu('${m.id}')">
-          <span class="badge" style="background:${bg}">${TIPOS[m.tipo].ic}</span>
+          <span class="badge" style="background:rgba(52,211,192,.16)">🍽️</span>
           <span class="grow">
-            <span class="nm">${esc(m.nombre)}<span class="tag ${m.tipo}">${TIPOS[m.tipo].n}</span></span>
+            <span class="nm">${esc(m.nombre)}</span>
             ${pills(t,true)}
           </span>
           <span class="kcalbig num" style="color:${col}">${f0(t.kcal)}
@@ -1269,7 +1238,7 @@ function renderMenus(){
   guardar();
 }
 function nuevoMenu(){
-  const m = normalizarMenu({id:uid(), nombre:"Menú "+(DB.menus.length+1), tipo: filtroMenu==="descanso"?"descanso":"entreno", comidas:{}});
+  const m = normalizarMenu({id:uid(), nombre:"Menú "+(DB.menus.length+1), comidas:{}});
   DB.menus.push(m); menuAbierto = m.id; guardar(); renderMenus();
 }
 function abrirMenu(id){ menuAbierto = id; renderMenus(); window.scrollTo(0,0); }
@@ -1281,7 +1250,7 @@ function copiaComidas(origen){
 }
 function duplicarMenu(id){
   const m = menuById(id);
-  const copia = normalizarMenu({id:uid(), nombre:m.nombre+" (copia)", tipo:m.tipo, comidas:copiaComidas(m.comidas)});
+  const copia = normalizarMenu({id:uid(), nombre:m.nombre+" (copia)", comidas:copiaComidas(m.comidas)});
   DB.menus.push(copia); menuAbierto = copia.id; guardar(); renderMenus(); toast("Menú duplicado");
 }
 function borrarMenu(id){
@@ -1290,10 +1259,6 @@ function borrarMenu(id){
     DB.menus = DB.menus.filter(x=>x.id!==id);
     menuAbierto = null; guardar(); renderMenus(); toast("Menú borrado");
   }, "Borrar", true);
-}
-function cambiarTipoMenu(tipo){
-  const m = menuActual(); if(!m) return;
-  m.tipo = tipo; guardar(); refrescarEditor();
 }
 function renombrarMenu(v){
   const m = menuById(menuAbierto); if(!m) return;
@@ -1311,7 +1276,6 @@ function irADia(f){ fechaDiario = f; renderDiario(); window.scrollTo(0,0); }
 function diaActual(){ return DB.diario[fechaDiario] || null; }
 function crearDia(base){
   DB.diario[fechaDiario] = normalizarMenu({
-    tipo: base ? base.tipo : "entreno",
     origen: base ? base.nombre : null,
     comidas: base ? copiaComidas(base.comidas) : {}
   });
@@ -1326,10 +1290,9 @@ function cargarMenuEnDia(){
   modal(`<h3>📖 Elegir menú para el día</h3>
     <div class="picklist">
       ${DB.menus.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre,"es")).map(m=>{
-        const col = m.tipo==="entreno" ? "var(--entreno)" : "var(--descanso)";
         return `<button class="fitem" onclick="elegirMenuDia('${m.id}')">
-          <span class="badge" style="background:${col}22">${TIPOS[m.tipo].ic}</span>
-          <span class="grow"><span class="nm">${esc(m.nombre)}<span class="tag ${m.tipo}">${TIPOS[m.tipo].n}</span></span></span>
+          <span class="badge" style="background:rgba(52,211,192,.16)">🍽️</span>
+          <span class="grow"><span class="nm">${esc(m.nombre)}</span></span>
           <span class="num small muted">${f0(totalMenu(m).kcal)} kcal</span></button>`;
       }).join("")}
     </div>
@@ -1348,7 +1311,7 @@ function elegirMenuDia(id){
 function guardarDiaComoMenu(){
   const d = diaActual(); if(!d) return;
   pedirTexto("💾 Guardar como menú", d.origen ? d.origen+" (variante)" : "Menú "+fechaDiario, nombre=>{
-    DB.menus.push(normalizarMenu({id:uid(), nombre, tipo:d.tipo, comidas:copiaComidas(d.comidas)}));
+    DB.menus.push(normalizarMenu({id:uid(), nombre, comidas:copiaComidas(d.comidas)}));
     guardar(); toast("Guardado en la biblioteca");
   });
 }
@@ -1380,11 +1343,11 @@ function renderDiario(){
       ${recientes.map(f=>{
         const dd = DB.diario[f];
         const t = totalMenu(dd);
-        const o = objetivoGramos(dd.tipo);
-        const col = dd.tipo==="entreno" ? "var(--entreno)" : "var(--descanso)";
+        const o = objetivoGramos();
+        const col = "var(--accent)";
         const dif = t.kcal-o.kcal;
         return `<button class="fitem" onclick="irADia('${f}')">
-          <span class="badge" style="background:${col}22">${TIPOS[dd.tipo].ic}</span>
+          <span class="badge" style="background:rgba(52,211,192,.16)">📅</span>
           <span class="grow"><span class="nm">${fechaCorta(f)}</span>
             <span class="small muted">${dd.origen?esc(dd.origen):"suelto"}</span></span>
           <span class="kcalbig num" style="color:${col}">${f0(t.kcal)}
@@ -1406,10 +1369,6 @@ function renderDiario(){
     <p class="small muted" style="margin:14px 0 7px">
       ${d.origen ? "Copiado de «"+esc(d.origen)+"». Lo que cambies aquí no toca el menú original." : "Día suelto, sin menú de origen."}
     </p>
-    <div class="seg">
-      <button data-t="entreno" aria-pressed="${d.tipo==="entreno"}" onclick="cambiarTipoMenu('entreno')">🏋️ Entrenamiento</button>
-      <button data-t="descanso" aria-pressed="${d.tipo==="descanso"}" onclick="cambiarTipoMenu('descanso')">🌙 Descanso</button>
-    </div>
     ${bloqueMenu(d)}
     <div class="row" style="margin-top:13px">
       <button class="btn grow small" onclick="cargarMenuEnDia()">📖 Cambiar menú</button>
@@ -1429,14 +1388,14 @@ const MACROS_AJ = [
 let ajuste = {macro:"prot", meal:"cena"};
 function huecoActual(){
   const m = menuActual(); if(!m) return null;
-  const t = totalMenu(m), o = objetivoGramos(m.tipo);
+  const t = totalMenu(m), o = objetivoGramos();
   return {kcal:o.kcal-t.kcal, prot:o.prot-t.prot, hid:o.hid-t.hid, gra:o.gra-t.gra, fib:o.fib-t.fib};
 }
 function abrirAjuste(){
   const m = menuActual(); if(!m) return;
   const h = huecoActual();
   // por defecto, el macro con mayor hueco relativo
-  const o = objetivoGramos(m.tipo);
+  const o = objetivoGramos();
   let mejor = "prot", peor = -1;
   ["prot","hid","gra"].forEach(k=>{ const r = o[k]>0 ? h[k]/o[k] : 0; if(r>peor){ peor=r; mejor=k; } });
   ajuste.macro = mejor;
@@ -1542,7 +1501,7 @@ function costeMenu(m){
 }
 function bloqueMenu(m){
   const t = totalMenu(m);
-  const o = objetivoGramos(m.tipo);
+  const o = objetivoGramos();
   const rest = o.kcal - t.kcal;
   const pctK = o.kcal>0 ? t.kcal/o.kcal*100 : 0;
   const colK = pctK>105 ? "var(--prot)" : (pctK>=95 ? "var(--fib)" : "var(--accent)");
@@ -1568,7 +1527,7 @@ function bloqueMenu(m){
       ${MEALS.map(x=>{
         const items = m.comidas[x.k]||[];
         const tm = totalItems(items);
-        const pct = num(obj(m.tipo).reparto[x.k]);
+        const pct = num(obj().reparto[x.k]);
         return `
           <div class="meal" style="border-left-color:${x.c}">
             <div class="head">
@@ -1605,11 +1564,6 @@ function renderDetalleMenu(){
   document.getElementById("menus-detalle").innerHTML = `
     <button class="back" onclick="volverAMenus()">‹ Todos los menús</button>
     <input value="${esc(m.nombre)}" style="font-size:17px;font-weight:600" onchange="renombrarMenu(this.value);renderDetalleMenu()">
-    <p class="small muted" style="margin:12px 0 7px">Objetivo que se aplica a este menú</p>
-    <div class="seg">
-      <button data-t="entreno" aria-pressed="${m.tipo==="entreno"}" onclick="cambiarTipoMenu('entreno')">🏋️ Entrenamiento</button>
-      <button data-t="descanso" aria-pressed="${m.tipo==="descanso"}" onclick="cambiarTipoMenu('descanso')">🌙 Descanso</button>
-    </div>
     ${bloqueMenu(m)}
     <div class="row" style="margin-top:13px">
       <button class="btn grow small" onclick="duplicarMenu('${m.id}')">⧉ Duplicar menú</button>
@@ -1666,8 +1620,9 @@ function quitarLibre(mealKey, idx){
 
 /* ---- selector de alimento ---- */
 let sel = {meal:null, id:null, idx:null};
+let modoPeso = "crudo";   // cómo ha pesado el usuario lo que teclea
 function abrirSelector(mealKey){
-  sel = {meal:mealKey, id:null, idx:null};
+  sel = {meal:mealKey, id:null, idx:null}; modoPeso = "crudo";
   if(!DB.alimentos.length){
     modal(`<h3>Sin alimentos</h3><div class="empty"><span class="big">🥕</span>Primero crea productos o platos en la pestaña Alimentos.</div>
       <div class="sticky-actions"><button class="btn" onclick="cerrarModal()">Cerrar</button></div>`);
@@ -1704,8 +1659,14 @@ function elegir(id){
       <div class="row" style="justify-content:space-between">
         <span class="row" style="gap:9px">${badgeDe(a)}<b>${esc(a.nombre)}</b></span>
         ${sel.idx===null?'<button class="btn small ghost" onclick="volverPick()">Cambiar</button>':''}</div>
-      <label class="f" for="s-g" style="margin-top:11px">⚖️ Cantidad en ${a.tipo==="plato"?"g":uni(a)}</label>
+      ${factorDe(a) ? `
+      <div class="seg plain" id="s-modo" style="margin-top:11px">
+        <button data-m="crudo" aria-pressed="true" onclick="setModoPeso('crudo')">⚖️ Crudo</button>
+        <button data-m="cocinado" aria-pressed="false" onclick="setModoPeso('cocinado')">🍳 Ya cocinado</button>
+      </div>` : ""}
+      <label class="f" for="s-g" style="margin-top:11px">Cantidad en ${a.tipo==="plato"?"g":uni(a)}</label>
       <input id="s-g" inputmode="decimal" value="100" oninput="pintarCant()">
+      <div id="s-equiv" class="small muted" style="margin-top:5px"></div>
       <div class="qty">
         ${[50,100,150,200,250].map(g=>`<button class="chip" onclick="setG(${g})">${g} ${a.tipo==="plato"?"g":uni(a)}</button>`).join("")}
         ${rac?`<button class="chip" style="color:var(--m-comida);border-color:var(--m-comida)" onclick="setG(${rac})">🍴 1 ración (${rac} g)</button>`:""}
@@ -1726,15 +1687,45 @@ function volverPick(){
   document.getElementById("s-cant").innerHTML="";
 }
 function setG(g){ document.getElementById("s-g").value=g; pintarCant(); }
+/* factor de cocción útil: solo si existe y no es 1 */
+function factorDe(a){
+  const f = num(a && a.factor);
+  return (a && a.tipo!=="plato" && f>0 && Math.abs(f-1)>0.001) ? f : 0;
+}
+/* gramos que se guardan: siempre en crudo, que es como están los valores del producto */
+function gramosCrudos(a, g){
+  const f = factorDe(a);
+  return (modoPeso==="cocinado" && f) ? g/f : g;
+}
+function setModoPeso(m){
+  modoPeso = m;
+  const c = document.getElementById("s-modo");
+  if(c) Array.from(c.children).forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.m===m)));
+  pintarCant();
+}
 function pintarCant(){
-  const a = byId(sel.id); const g = num(document.getElementById("s-g").value);
-  const m = macrosDe(a,g);
+  const a = byId(sel.id);
+  const g = num(document.getElementById("s-g").value);
+  const u = a.tipo==="plato" ? "g" : uni(a);
+  const crudo = gramosCrudos(a, g);
+  const m = macrosDe(a, crudo);
   document.getElementById("s-kcal").textContent = f0(m.kcal)+" kcal";
   document.getElementById("s-prev").innerHTML = pills(m,true);
+  const eq = document.getElementById("s-equiv");
+  if(eq){
+    const f = factorDe(a);
+    if(!f) eq.textContent = "";
+    else if(modoPeso==="cocinado")
+      eq.innerHTML = `Se guardan <b>${f0(crudo)} ${u}</b> en crudo (factor ${f1(f)}).`;
+    else
+      eq.innerHTML = `Pesado antes de cocinar. Ya hecho quedará en unos <b>${f0(g*f)} ${u}</b>.`;
+  }
 }
 function confirmarItem(){
-  const g = num(document.getElementById("s-g").value);
-  if(g<=0){ toast("Pon una cantidad mayor que 0"); return; }
+  const a = byId(sel.id);
+  const teclea = num(document.getElementById("s-g").value);
+  if(teclea<=0){ toast("Pon una cantidad mayor que 0"); return; }
+  const g = Math.round(gramosCrudos(a, teclea)*10)/10;
   const m = menuActual(); if(!m) return;
   if(sel.idx!==null){ m.comidas[sel.meal][sel.idx] = {id:sel.id, g}; }
   else { m.comidas[sel.meal].push({id:sel.id, g}); }
@@ -1743,7 +1734,7 @@ function confirmarItem(){
 function editarItem(mealKey, idx){
   const m = menuActual(); if(!m) return;
   const it = m.comidas[mealKey][idx];
-  sel = {meal:mealKey, id:it.id, idx};
+  sel = {meal:mealKey, id:it.id, idx}; modoPeso = "crudo";
   const a = byId(it.id);
   modal(`<h3>${meal(mealKey).ic} ${esc(a.nombre)}</h3><div id="s-lista" class="hidden"></div><div id="s-cant"></div>
     <div class="sticky-actions"><button class="btn" onclick="cerrarModal()">Cerrar</button></div>`);
@@ -1831,8 +1822,8 @@ function renderCompra(){
   document.getElementById("compra-sel").innerHTML = items.length ? items.map((it,idx)=>{
     const o = it.tipo==="plato" ? byId(it.id) : menuById(it.id);
     const unidad = it.tipo==="plato" ? "raciones" : "veces";
-    const ic = it.tipo==="plato" ? "🍲" : TIPOS[o.tipo].ic;
-    const col = it.tipo==="plato" ? "var(--m-comida)" : (o.tipo==="entreno"?"var(--entreno)":"var(--descanso)");
+    const ic = it.tipo==="plato" ? "🍲" : "🍽️";
+    const col = it.tipo==="plato" ? "var(--m-comida)" : "var(--accent)";
     return `<div class="selrow">
       <span class="badge" style="background:${col}22">${ic}</span>
       <span class="grow"><span class="nm">${esc(o.nombre)}</span>
@@ -1906,8 +1897,8 @@ function abrirSelectorCompra(tipo){
   modal(`<h3>${tipo==="plato"?"🍲 Añadir plato":"🍽️ Añadir menú"}</h3>
     <div class="picklist">
       ${lista.map(o=>{
-        const ic = tipo==="plato" ? "🍲" : TIPOS[o.tipo].ic;
-        const col = tipo==="plato" ? "var(--m-comida)" : (o.tipo==="entreno"?"var(--entreno)":"var(--descanso)");
+        const ic = tipo==="plato" ? "🍲" : "🍽️";
+        const col = tipo==="plato" ? "var(--m-comida)" : "var(--accent)";
         const extra = tipo==="plato"
           ? `${f0(num(o.pesoTotal)/(num(o.raciones)||1))} g/ración`
           : `${f0(totalMenu(o).kcal)} kcal`;
@@ -1921,14 +1912,8 @@ function abrirSelectorCompra(tipo){
 }
 
 /* ============ render: objetivos ============ */
-function setObjTipo(t){
-  objTipo = t;
-  document.getElementById("ot-entreno").setAttribute("aria-pressed", String(t==="entreno"));
-  document.getElementById("ot-descanso").setAttribute("aria-pressed", String(t==="descanso"));
-  renderObjetivo();
-}
 function renderObjetivo(){
-  const o = obj(objTipo);
+  const o = obj();
   const gkg = o.modoProt==="gkg";
   document.getElementById("o-kcal").value = o.kcal;
   document.getElementById("o-fibra").value = o.fibra;
@@ -1951,7 +1936,7 @@ function renderObjetivo(){
     <div class="row" style="margin-bottom:8px">
       <span class="badge" style="width:28px;height:28px;font-size:13px;background:${m.c}22">${m.ic}</span>
       <span class="grow small">${m.n}</span>
-      <input style="width:84px" inputmode="decimal" value="${o.reparto[m.k]}" onchange="obj(objTipo).reparto['${m.k}']=num(this.value);renderObjetivo();guardar()">
+      <input style="width:84px" inputmode="decimal" value="${o.reparto[m.k]}" onchange="obj().reparto['${m.k}']=num(this.value);renderObjetivo();guardar()">
       <span class="muted small">%</span>
     </div>`).join("");
   const sumaR = MEALS.reduce((s,m)=>s+num(o.reparto[m.k]),0);
@@ -1961,7 +1946,7 @@ function renderObjetivo(){
   pintarObjetivoCalculo();
 }
 function setModoProt(m){
-  const o = obj(objTipo);
+  const o = obj();
   if(m==="gkg" && !num(DB.perfil.peso)){
     toast("Pon antes tu peso en la calculadora de gasto");
     abrirCalculadora(); return;
@@ -1971,8 +1956,8 @@ function setModoProt(m){
   guardar(); renderObjetivo();
 }
 function pintarObjetivoCalculo(){
-  const o = obj(objTipo);
-  const g = objetivoGramos(objTipo);
+  const o = obj();
+  const g = objetivoGramos();
   const kcalReales = g.prot*4 + g.hid*4 + g.gra*9;
   const pP = g.kcal>0 ? g.prot*4/g.kcal*100 : 0;
   let aviso;
@@ -1999,7 +1984,7 @@ function pintarObjetivoCalculo(){
     `<p class="small muted" style="margin:8px 0 0">Suman ${f0(kcalReales)} kcal de las ${f0(g.kcal)} marcadas.</p>`;
 }
 function objDesdePorcentajes(){
-  const o = obj(objTipo);
+  const o = obj();
   const g = i => { const e = document.getElementById(i); return e ? e.value : null; };
   o.kcal  = num(g("o-kcal"));
   if(o.modoProt==="gkg") o.protGkg = num(g("o-gkg"));
@@ -2058,23 +2043,14 @@ function calcular(){
         <span class="small muted">Gasto total estimado</span><b class="num" style="color:var(--accent)">${f0(gasto)} kcal</b></div>
       <p class="small muted" style="margin:9px 0 0">Rango razonable: ${f0(gasto*0.9)} – ${f0(gasto*1.1)} kcal.</p>
       <div class="row" style="margin-top:11px">
-        <button class="btn small grow" onclick="usarGasto(${Math.round(gasto)},'entreno')">🏋️ Usar en entreno</button>
-        <button class="btn small grow" onclick="usarGasto(${Math.round(gasto)},'descanso')">🌙 Usar en descanso</button>
+        <button class="btn primary small grow" onclick="usarGasto(${Math.round(gasto)})">Usar como objetivo</button>
       </div>
     </div>`;
 }
-function usarGasto(kcal, tipo){
-  DB.objetivos[tipo].kcal = kcal;
-  guardar(); cerrarModal(); objTipo = tipo; setObjTipo(tipo);
-  toast("Objetivo de "+TIPOS[tipo].n.toLowerCase()+": "+f0(kcal)+" kcal");
-}
-function copiarObjetivo(){
-  const otro = objTipo==="entreno" ? "descanso" : "entreno";
-  confirmar("⇄ Copiar objetivo",
-    "Se copian las calorías, los porcentajes y el reparto de «"+TIPOS[otro].n+"» sobre «"+TIPOS[objTipo].n+"».", ()=>{
-      DB.objetivos[objTipo] = JSON.parse(JSON.stringify(DB.objetivos[otro]));
-      guardar(); renderObjetivo(); toast("Objetivo copiado");
-    }, "Copiar");
+function usarGasto(kcal){
+  DB.objetivo.kcal = kcal;
+  guardar(); cerrarModal(); renderObjetivo();
+  toast("Objetivo: "+f0(kcal)+" kcal al día");
 }
 
 /* ============ datos ============ */
@@ -2256,30 +2232,18 @@ function cargarDatos(d){
     baseVistos: Array.isArray(d.meta && d.meta.baseVistos) ? d.meta.baseVistos : []
   };
   DB.perfil = Object.assign({sexo:"h", edad:null, altura:null, peso:null, actividad:1.55}, d.perfil||{});
-  if(d.objetivos && d.objetivos.entreno){
-    DB.objetivos = {
-      entreno: Object.assign(objetivoPorDefecto(), d.objetivos.entreno),
-      descanso: Object.assign(objetivoPorDefecto(), d.objetivos.descanso || d.objetivos.entreno)
-    };
-  } else if(d.objetivo){
-    DB.objetivos = {
-      entreno: Object.assign(objetivoPorDefecto(), d.objetivo),
-      descanso: Object.assign(objetivoPorDefecto(), d.objetivo)
-    };
-  } else {
-    DB.objetivos = {entreno:objetivoPorDefecto(), descanso:objetivoPorDefecto()};
-  }
-  ["entreno","descanso"].forEach(t=>{
-    const rep = DB.objetivos[t].reparto || {};
-    MEALS.forEach(m=>{ if(rep[m.k]==null) rep[m.k]=0; });
-    DB.objetivos[t].reparto = rep;
-  });
+  // hasta la v1.2 había dos objetivos (entreno y descanso); se conserva el de entreno
+  const fuente = d.objetivo || (d.objetivos && (d.objetivos.entreno || d.objetivos.descanso)) || {};
+  DB.objetivo = Object.assign(objetivoPorDefecto(), fuente);
+  const reparto = DB.objetivo.reparto || {};
+  MEALS.forEach(m=>{ if(reparto[m.k]==null) reparto[m.k]=0; });
+  DB.objetivo.reparto = reparto;
   if(Array.isArray(d.menus)){
-    DB.menus = d.menus.map(m=>normalizarMenu(Object.assign({id:uid(), nombre:"Menú", tipo:"entreno"}, m)));
+    DB.menus = d.menus.map(m=>{ const c = Object.assign({id:uid(), nombre:"Menú"}, m); delete c.tipo; return normalizarMenu(c); });
   } else if(d.menus && typeof d.menus==="object"){
     DB.menus = Object.keys(d.menus).sort().map(fechaKey=>{
       const viejo = d.menus[fechaKey] || {};
-      const m = normalizarMenu({id:uid(), nombre:"Menú "+fechaKey, tipo:"entreno", comidas:{}});
+      const m = normalizarMenu({id:uid(), nombre:"Menú "+fechaKey, comidas:{}});
       MEALS.forEach(x=>{ m.comidas[x.k] = Array.isArray(viejo[x.k]) ? viejo[x.k].map(i=>({id:i.id,g:i.g})) : []; });
       return m;
     }).filter(m=>MEALS.some(x=>m.comidas[x.k].length));
@@ -2289,14 +2253,14 @@ function cargarDatos(d){
   DB.diario = {};
   if(d.diario && typeof d.diario==="object"){
     Object.keys(d.diario).forEach(f=>{
-      if(/^\d{4}-\d{2}-\d{2}$/.test(f)) DB.diario[f] = normalizarMenu(Object.assign({tipo:"entreno", origen:null}, d.diario[f]));
+      if(/^\d{4}-\d{2}-\d{2}$/.test(f)){ const c = Object.assign({origen:null}, d.diario[f]); delete c.tipo; DB.diario[f] = normalizarMenu(c); }
     });
   }
   DB.compra = {
     items: Array.isArray(d.compra && d.compra.items) ? d.compra.items : [],
     marcados: Array.isArray(d.compra && d.compra.marcados) ? d.compra.marcados : []
   };
-  DB.v = 6;
+  DB.v = 7;
 }
 
 /* ============ instalación como app (PWA) ============ */
