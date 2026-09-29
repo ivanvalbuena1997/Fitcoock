@@ -222,7 +222,7 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
         <rect x="11.6" y="12" width="4" height="9" rx="1.4" fill="#B77BFF"/>
         <rect x="16.9" y="1" width="4" height="20" rx="1.4" fill="#3ECF8E"/>
       </svg>
-      <h1>FitCoock</h1><span class="sub">v1.3.1 · comidas y macros</span>
+      <h1>FitCoock</h1><span class="sub">v1.3.2 · comidas y macros</span>
     </div>
     <nav role="tablist">
       <button role="tab" id="tab-alimentos" aria-selected="true" onclick="setTab('alimentos')"><i>🥕</i>Alimentos</button>
@@ -308,6 +308,9 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
         <button class="btn grow" onclick="exportar()">⬇ Exportar</button>
         <button class="btn grow" onclick="document.getElementById('importar').click()">⬆ Importar</button>
       </div>
+      <button class="btn primary" style="width:100%;margin-top:8px" onclick="enviarCopia()">📧 Enviar copia por correo</button>
+      <label class="f" style="margin-top:10px" for="d-correo">Correo al que enviarla (opcional)</label>
+      <input id="d-correo" type="email" inputmode="email" placeholder="tucorreo@ejemplo.com" onchange="guardarCorreo(this.value)">
       <input type="file" id="importar" accept="application/json" class="hidden" onchange="importar(event)">
       <div class="row" style="margin-top:8px">
         <button class="btn grow" onclick="recargarBase()">🧺 Reponer alimentos base</button>
@@ -392,7 +395,7 @@ function objetivoPorDefecto(){
 
 let DB = {
   v:7,
-  meta: {desdeExport:0, ultimaExport:null, baseVistos:[]},
+  meta: {desdeExport:0, ultimaExport:null, baseVistos:[], correo:""},
   perfil: {sexo:"h", edad:null, altura:null, peso:null, actividad:1.55},
   alimentos: [],
   menus: [],
@@ -1914,6 +1917,8 @@ function abrirSelectorCompra(tipo){
 /* ============ render: objetivos ============ */
 function renderObjetivo(){
   const o = obj();
+  const ec = document.getElementById("d-correo");
+  if(ec) ec.value = DB.meta.correo || "";
   const gkg = o.modoProt==="gkg";
   document.getElementById("o-kcal").value = o.kcal;
   document.getElementById("o-fibra").value = o.fibra;
@@ -2054,17 +2059,57 @@ function usarGasto(kcal){
 }
 
 /* ============ datos ============ */
-function exportar(){
-  const blob = new Blob([JSON.stringify(DB,null,2)], {type:"application/json"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  const d = new Date();
-  a.href=url; a.download="fitcoock-"+new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)+".json"; a.click();
-  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+function nombreCopia(){ return "fitcoock-"+todayISO()+".json"; }
+function marcarExportado(){
   DB.meta.desdeExport = 0;
   DB.meta.ultimaExport = todayISO();
   guardar();
 }
+function descargarCopia(){
+  const blob = new Blob([JSON.stringify(DB,null,2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = nombreCopia(); a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+function exportar(){ descargarCopia(); marcarExportado(); toast("Copia descargada"); }
+
+/* Enviar la copia por correo. En el móvil se usa el menú de compartir del
+   sistema, que adjunta el archivo en Gmail o donde elijas. Si el navegador no
+   lo soporta (ordenador, Firefox), se descarga el archivo y se abre el correo
+   con el asunto puesto para que lo adjuntes a mano: un mailto no puede llevar
+   adjuntos por sí solo. */
+async function enviarCopia(){
+  const contenido = JSON.stringify(DB,null,2);
+  const nombre = nombreCopia();
+  let archivo = null;
+  try { archivo = new File([contenido], nombre, {type:"application/json"}); } catch(e){}
+
+  if(archivo && navigator.canShare && navigator.canShare({files:[archivo]})){
+    try{
+      await navigator.share({
+        files:[archivo],
+        title:"Copia de FitCoock",
+        text:"Copia de seguridad de FitCoock del "+todayISO()
+      });
+      marcarExportado();
+      toast("Copia enviada");
+      return;
+    }catch(e){
+      if(e && e.name === "AbortError") return;   // el usuario cerró el menú
+    }
+  }
+  descargarCopia();
+  marcarExportado();
+  const asunto = encodeURIComponent("Copia de FitCoock "+todayISO());
+  const cuerpo  = encodeURIComponent(
+    "Adjunta el archivo "+nombre+", que acaba de descargarse en este dispositivo.\n\n"+
+    "Para restaurarlo: FitCoock → Objetivos → Datos → Importar.");
+  const para = encodeURIComponent(DB.meta.correo||"");
+  toast("Archivo descargado: adjúntalo al correo");
+  setTimeout(()=>{ location.href = "mailto:"+para+"?subject="+asunto+"&body="+cuerpo; }, 400);
+}
+function guardarCorreo(v){ DB.meta.correo = (v||"").trim(); guardar(); }
 function avisarCopia(){
   if(DB.meta.desdeExport < 20) return;
   if(!DB.alimentos.length && !DB.menus.length) return;
@@ -2074,7 +2119,8 @@ function avisarCopia(){
     Los datos viven solo en este navegador: si lo limpias o cambias de móvil, se pierden.</p>
     <div class="sticky-actions">
       <button class="btn ghost" onclick="posponerCopia()">Ahora no</button>
-      <button class="btn primary" onclick="exportar();cerrarModal()">Exportar copia</button>
+      <button class="btn" onclick="exportar();cerrarModal()">⬇ Descargar</button>
+      <button class="btn primary" onclick="cerrarModal();enviarCopia()">📧 Enviar</button>
     </div>`);
 }
 function posponerCopia(){ DB.meta.desdeExport = 0; guardar(); cerrarModal(); }
@@ -2229,7 +2275,8 @@ function cargarDatos(d){
   DB.meta = {
     desdeExport: num(d.meta && d.meta.desdeExport),
     ultimaExport: (d.meta && d.meta.ultimaExport) || null,
-    baseVistos: Array.isArray(d.meta && d.meta.baseVistos) ? d.meta.baseVistos : []
+    baseVistos: Array.isArray(d.meta && d.meta.baseVistos) ? d.meta.baseVistos : [],
+    correo: (d.meta && d.meta.correo) || ""
   };
   DB.perfil = Object.assign({sexo:"h", edad:null, altura:null, peso:null, actividad:1.55}, d.perfil||{});
   // hasta la v1.2 había dos objetivos (entreno y descanso); se conserva el de entreno

@@ -1,4 +1,4 @@
-# FitCoock v1.3.1
+# FitCoock v1.3.2
 
 App web de registro de comidas y macros. Funciona sin conexión y se instala como
 PWA. Los datos se guardan en el navegador del dispositivo (localStorage), no en
@@ -27,7 +27,7 @@ Todos van en la **raíz** del repositorio, al mismo nivel.
 Cada vez que modifiques `index.html`, **sube el número de `VERSION` en `sw.js`**:
 
 ```js
-const VERSION = "fitcoock-v1.3.1";   // → "fitcoock-v1.4"
+const VERSION = "fitcoock-v1.3.2";   // → "fitcoock-v1.4"
 ```
 
 Si no lo haces, el móvil seguirá sirviendo la copia guardada y parecerá que los
@@ -36,8 +36,14 @@ cambios no se han aplicado. Es el fallo clásico con service workers.
 ## Copias de seguridad
 
 Los datos viven solo en el navegador. Si limpias los datos del navegador o
-cambias de móvil, se pierden. Usa Objetivos → Datos → **Exportar** de vez en
-cuando; la app te lo recuerda cada 20 aperturas.
+cambias de móvil, se pierden. En Objetivos → Datos tienes **Exportar** (descarga
+el archivo) y **Enviar copia por correo**. La app te lo recuerda cada 20
+aperturas.
+
+En el móvil, «Enviar copia» abre el menú de compartir de Android con el archivo
+ya adjunto: eliges Gmail y lo mandas. En el ordenador, o en navegadores sin esa
+función, descarga el archivo y abre el correo con el asunto puesto para que lo
+adjuntes tú (un enlace `mailto:` no puede llevar adjuntos).
 
 ## Alimentos base
 
@@ -56,6 +62,9 @@ base» en Objetivos → Datos.
 
 ## Historial
 
+- **v1.3.2** — La copia de seguridad se puede enviar por correo: en el móvil usa
+  el menú de compartir del sistema y adjunta el archivo; en el ordenador lo
+  descarga y abre el correo para adjuntarlo a mano.
 - **v1.3.1** — Fuera también la etiqueta entreno/descanso de los menús y del
   diario, y sus filtros.
 - **v1.3** — Al añadir un producto a un menú se puede indicar si lo has pesado
