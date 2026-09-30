@@ -222,7 +222,7 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
         <rect x="11.6" y="12" width="4" height="9" rx="1.4" fill="#B77BFF"/>
         <rect x="16.9" y="1" width="4" height="20" rx="1.4" fill="#3ECF8E"/>
       </svg>
-      <h1>FitCoock</h1><span class="sub">v1.3.2 · comidas y macros</span>
+      <h1>FitCoock</h1><span class="sub">v1.4 · comidas y macros</span>
     </div>
     <nav role="tablist">
       <button role="tab" id="tab-alimentos" aria-selected="true" onclick="setTab('alimentos')"><i>🥕</i>Alimentos</button>
@@ -2059,6 +2059,203 @@ function usarGasto(kcal){
 }
 
 /* ============ datos ============ */
+/* ============ copia de seguridad ============
+   El archivo se genera autodescriptivo: lleva un diccionario con el significado
+   y las unidades de cada campo, para que un script pueda analizarlo sin conocer
+   la app, y una sección de totales ya calculados. */
+const APP_VERSION = "1.4";
+const FORMATO_COPIA = 2;
+
+const DICCIONARIO = {
+  lee_esto: [
+    "Registro de comidas y macros de una persona. Todo el contenido está en 'datos'.",
+    "'derivados' son totales ya calculados a partir de 'datos'; son redundantes y se pueden recalcular.",
+    "Los valores nutricionales de un alimento van SIEMPRE por 100 unidades de medida (100 g o 100 ml, según su campo 'unidad').",
+    "Las cantidades dentro de las comidas van SIEMPRE en peso crudo, sin cocinar, en la unidad del alimento.",
+    "Las claves de texto (id, codigo) enlazan registros entre secciones; ver 'enlaces'."
+  ],
+  unidades: {
+    kcal: "kilocalorías",
+    prot: "gramos de proteína",
+    hid: "gramos de hidratos de carbono, sin incluir la fibra (criterio de etiquetado de la UE)",
+    gra: "gramos de grasa total",
+    fib: "gramos de fibra alimentaria",
+    g: "cantidad del alimento, en gramos o mililitros según el campo 'unidad' de ese alimento",
+    precio: "euros por kilo, o por litro si la unidad del alimento es ml",
+    peso: "kilogramos", altura: "centímetros", edad: "años",
+    porcentajes: "tanto por ciento (0-100)",
+    fechas: "AAAA-MM-DD en hora local de España"
+  },
+  enlaces: {
+    "menus[].comidas[comida][].id": "→ alimentos[].id",
+    "diario[fecha].comidas[comida][].id": "→ alimentos[].id",
+    "alimentos[].ingredientes[].id": "→ alimentos[].id (solo en los de tipo 'plato')",
+    "compra.items[].id": "→ alimentos[].id si tipo='plato', o menus[].id si tipo='menu'"
+  },
+  secciones: {
+    alimentos: {
+      que_es: "Catálogo de productos y recetas. Es la tabla maestra: todo lo demás apunta aquí.",
+      campos: {
+        id: "identificador interno, único",
+        codigo: "código del producto en la hoja de origen del usuario; vacío si lo creó a mano",
+        nombre: "nombre del producto tal y como lo compra",
+        tipo: "'basico' = producto de supermercado; 'plato' = receta hecha con otros alimentos",
+        super: "dónde se compra: generico | mercadona | dia | lidl | carrefour | aldi | decathlon | hsn. 'generico' = no depende de marca (fruta, huevos, arroz…)",
+        unidad: "'g' o 'ml'. Define en qué se miden las cantidades y a qué se refieren los valores por 100",
+        kcal: "kilocalorías por 100 unidades",
+        prot: "gramos de proteína por 100 unidades",
+        hid: "gramos de hidratos por 100 unidades",
+        gra: "gramos de grasa por 100 unidades",
+        fib: "gramos de fibra por 100 unidades",
+        precio: "euros por kilo o litro; 0 = sin dato",
+        factor: "cuánto pesa al cocinarse respecto al peso crudo (0,75 = pierde el 25 %; 2,5 = el arroz absorbe agua). 0 = sin dato o no aplica",
+        ingredientes: "solo en tipo 'plato': lista de {id, g} en peso crudo",
+        pesoFinal: "solo en 'plato': peso del plato ya cocinado si el usuario lo pesó; 0 = estimado con los factores",
+        pesoTotal: "solo en 'plato': peso del plato terminado que se usa en los cálculos, en gramos",
+        raciones: "solo en 'plato': en cuántas raciones se reparte",
+        precioIncompleto: "solo en 'plato': true si algún ingrediente no tenía precio, así que el coste está infravalorado"
+      }
+    },
+    menus: {
+      que_es: "Plantillas de un día completo de comidas, reutilizables. NO significan que se hayan comido.",
+      campos: {
+        id: "identificador interno", nombre: "nombre que le puso el usuario",
+        comidas: "objeto con cinco claves fijas: desayuno, almuerzo, comida, merienda, cena. Cada una es una lista de items"
+      }
+    },
+    diario: {
+      que_es: "Lo que el usuario apuntó que comió cada día. ESTA es la sección de consumo real. Objeto indexado por fecha.",
+      campos: {
+        origen: "nombre del menú del que se copió ese día, o null si se montó suelto",
+        comidas: "mismo formato que en menus"
+      },
+      nota: "Solo existen las fechas con algo apuntado. Un día ausente significa 'sin registrar', NO 'no comió'."
+    },
+    item_de_comida: {
+      que_es: "Cada elemento de una lista de comidas tiene una de estas dos formas",
+      forma_1_del_catalogo: {
+        id: "→ alimentos[].id",
+        g: "cantidad en peso CRUDO, en la unidad de ese alimento",
+        calculo: "macro = alimentos[id][macro] * g / 100"
+      },
+      forma_2_estimacion_libre: {
+        libre: "true. Comida fuera de casa estimada a ojo, sin producto en el catálogo",
+        nombre: "descripción de lo que comió",
+        kcal_prot_hid_gra_fib: "valores TOTALES de lo comido, NO por 100. No se multiplican por nada",
+        aviso: "son estimaciones del usuario, menos fiables que el resto"
+      }
+    },
+    objetivo: {
+      que_es: "Objetivo diario único de macros. Sirve de referencia para juzgar cada día.",
+      campos: {
+        kcal: "objetivo de kilocalorías al día",
+        modoProt: "'pct' = la proteína se define como porcentaje de las calorías; 'gkg' = como gramos por kilo de peso corporal",
+        pProt: "porcentaje de calorías en proteína (si modoProt='pct')",
+        protGkg: "gramos de proteína por kilo de peso (si modoProt='gkg')",
+        pHid: "porcentaje de calorías en hidratos",
+        pGra: "porcentaje de calorías en grasa",
+        fibra: "objetivo de fibra en gramos al día",
+        reparto: "porcentaje de las calorías del día asignado a cada comida"
+      }
+    },
+    perfil: {
+      que_es: "Datos del usuario para la calculadora de gasto. Pueden estar a null si no los rellenó.",
+      campos: {sexo:"'h' u 'm'", edad:"años", altura:"cm", peso:"kg", actividad:"multiplicador de actividad (1,2 sedentario a 1,9 muy alto)"}
+    },
+    compra: {
+      que_es: "Lista de la compra en curso. Es una intención de cocinar, no consumo.",
+      campos: {
+        "items[].tipo": "'plato' o 'menu'",
+        "items[].cant": "si tipo='plato', número de raciones; si tipo='menu', cuántas veces se va a repetir",
+        marcados: "ids de alimentos ya tachados en la lista"
+      }
+    },
+    meta: {que_es: "Estado interno de la app (avisos de copia, catálogo ya visto). Sin valor analítico."}
+  },
+  formulas: {
+    macros_de_un_item: "valor_por_100 * g / 100",
+    kcal_desde_macros: "prot*4 + hid*4 + gra*9 + fib*2  (Atwater, con fibra a 2 kcal/g como en el etiquetado de la UE). Sirve para detectar datos incoherentes; el campo kcal es el de la etiqueta y manda.",
+    objetivo_prot_g: "modoProt='pct': kcal*pProt/100/4. modoProt='gkg': perfil.peso*protGkg",
+    objetivo_hid_y_gra_g: "resto = kcal - prot_g*4; hid_g = resto*(pHid/(pHid+pGra))/4; gra_g = resto*(pGra/(pHid+pGra))/9",
+    plato_por_100g: "se suman los macros de sus ingredientes y se divide entre pesoTotal, *100. Ya viene calculado en los campos kcal/prot/hid/gra/fib del plato.",
+    peso_cocinado: "peso_crudo * factor",
+    coste_de_un_item: "precio * g / 1000"
+  },
+  derivados: {
+    que_es: "Totales ya calculados a partir de 'datos'. Redundante: se puede recalcular con las fórmulas de arriba. Está para no tener que resolver los enlaces si solo se quieren cifras por día.",
+    periodo: {desde:"primera fecha con registro", hasta:"última fecha con registro", dias_con_registro:"cuántos días tienen algo apuntado", dias_naturales:"días transcurridos entre la primera y la última fecha, ambas incluidas", cobertura_pct:"dias_con_registro / dias_naturales * 100"},
+    objetivo_en_gramos: "el objetivo diario ya resuelto a gramos de cada macro",
+    dias_registrados: {
+      fecha:"AAAA-MM-DD", origen:"menú del que se copió el día, o null",
+      kcal_prot_hid_gra_fib:"totales del día completo, sumando las cinco comidas",
+      kcal_por_comida:"kilocalorías de cada una de las cinco comidas",
+      objetivo_kcal:"objetivo del usuario, el mismo todos los días",
+      cumplimiento_kcal_pct:"kcal del día / objetivo_kcal * 100",
+      items_estimados:"cuántos elementos de ese día eran estimaciones a ojo (libre=true); cuanto mayor, menos fiable el día"
+    },
+    menus: "totales de cada plantilla de menú, para comparar plantillas entre sí"
+  },
+  avisos: [
+    "Los días del diario son autodeclarados y pueden faltar comidas o días enteros: no asumas que un día con 900 kcal es una restricción real.",
+    "Los items con libre=true son estimaciones a ojo.",
+    "Los valores nutricionales de los alimentos los copió el usuario de las etiquetas: pueden tener erratas. La fórmula kcal_desde_macros sirve para detectarlas."
+  ]
+};
+
+function totalesDe(comidas){
+  const t = MEALS.reduce((acc,x)=> sumar(acc, totalItems(comidas[x.k])), Object.assign({},CEROS));
+  return {kcal:r1(t.kcal), prot:r1(t.prot), hid:r1(t.hid), gra:r1(t.gra), fib:r1(t.fib)};
+}
+function r1(n){ return Math.round(n*10)/10; }
+function derivados(){
+  const o = objetivoGramos();
+  const dias = Object.keys(DB.diario).sort().map(f=>{
+    const d = DB.diario[f];
+    const t = totalesDe(d.comidas);
+    const porComida = {};
+    MEALS.forEach(x=>{ const tm = totalItems(d.comidas[x.k]); porComida[x.k] = r1(tm.kcal); });
+    return Object.assign({fecha:f, origen:d.origen||null}, t, {
+      kcal_por_comida: porComida,
+      objetivo_kcal: r1(o.kcal),
+      cumplimiento_kcal_pct: o.kcal>0 ? r1(t.kcal/o.kcal*100) : null,
+      items_estimados: MEALS.reduce((n,x)=>n+(d.comidas[x.k]||[]).filter(i=>i.libre).length,0)
+    });
+  });
+  const fechas = dias.map(d=>d.fecha);
+  let periodo = {desde:null, hasta:null, dias_con_registro:0, dias_naturales:0, cobertura_pct:null};
+  if(fechas.length){
+    const desde = fechas[0], hasta = fechas[fechas.length-1];
+    const dif = Math.round((new Date(hasta) - new Date(desde))/86400000) + 1;
+    periodo = {desde, hasta, dias_con_registro:fechas.length, dias_naturales:dif,
+               cobertura_pct: r1(fechas.length/dif*100)};
+  }
+  return {
+    periodo: periodo,
+    objetivo_en_gramos: {kcal:r1(o.kcal), prot:r1(o.prot), hid:r1(o.hid), gra:r1(o.gra), fib:r1(o.fib)},
+    dias_registrados: dias,
+    menus: DB.menus.map(m=>Object.assign({id:m.id, nombre:m.nombre}, totalesDe(m.comidas)))
+  };
+}
+function copiaCompleta(){
+  return {
+    app: "FitCoock",
+    version_app: APP_VERSION,
+    formato: FORMATO_COPIA,
+    exportado: new Date().toISOString(),
+    idioma: "es",
+    diccionario: DICCIONARIO,
+    datos: {
+      perfil: DB.perfil,
+      objetivo: DB.objetivo,
+      alimentos: DB.alimentos,
+      menus: DB.menus,
+      diario: DB.diario,
+      compra: DB.compra,
+      meta: DB.meta
+    },
+    derivados: derivados()
+  };
+}
 function nombreCopia(){ return "fitcoock-"+todayISO()+".json"; }
 function marcarExportado(){
   DB.meta.desdeExport = 0;
@@ -2066,7 +2263,7 @@ function marcarExportado(){
   guardar();
 }
 function descargarCopia(){
-  const blob = new Blob([JSON.stringify(DB,null,2)], {type:"application/json"});
+  const blob = new Blob([JSON.stringify(copiaCompleta(),null,2)], {type:"application/json"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url; a.download = nombreCopia(); a.click();
@@ -2080,7 +2277,7 @@ function exportar(){ descargarCopia(); marcarExportado(); toast("Copia descargad
    con el asunto puesto para que lo adjuntes a mano: un mailto no puede llevar
    adjuntos por sí solo. */
 async function enviarCopia(){
-  const contenido = JSON.stringify(DB,null,2);
+  const contenido = JSON.stringify(copiaCompleta(),null,2);
   const nombre = nombreCopia();
   let archivo = null;
   try { archivo = new File([contenido], nombre, {type:"application/json"}); } catch(e){}
@@ -2129,7 +2326,8 @@ function importar(ev){
   const r = new FileReader();
   r.onload = ()=>{
     try{
-      const d = JSON.parse(r.result);
+      const bruto = JSON.parse(r.result);
+      const d = (bruto && bruto.datos && Array.isArray(bruto.datos.alimentos)) ? bruto.datos : bruto;
       if(!d || !Array.isArray(d.alimentos)) throw new Error("formato");
       confirmar("⬆ Importar copia", "Sustituye todos los datos actuales por los del archivo.", ()=>{
         cargarDatos(d);

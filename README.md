@@ -1,4 +1,4 @@
-# FitCoock v1.3.2
+# FitCoock v1.4
 
 App web de registro de comidas y macros. Funciona sin conexión y se instala como
 PWA. Los datos se guardan en el navegador del dispositivo (localStorage), no en
@@ -27,7 +27,7 @@ Todos van en la **raíz** del repositorio, al mismo nivel.
 Cada vez que modifiques `index.html`, **sube el número de `VERSION` en `sw.js`**:
 
 ```js
-const VERSION = "fitcoock-v1.3.2";   // → "fitcoock-v1.4"
+const VERSION = "fitcoock-v1.4";   // → "fitcoock-v1.5"
 ```
 
 Si no lo haces, el móvil seguirá sirviendo la copia guardada y parecerá que los
@@ -60,8 +60,30 @@ al abrir la app, sin tocar los que ya tengas ni los que hayas creado tú. Los qu
 borres a mano no reaparecen; para recuperarlos está el botón «Reponer alimentos
 base» en Objetivos → Datos.
 
+## Formato de la copia de seguridad
+
+El archivo exportado es autodescriptivo: además de los datos lleva un
+`diccionario` con el significado, las unidades y las fórmulas de cada campo, y
+una sección `derivados` con los totales por día ya calculados. La idea es poder
+analizarlo con un script sin conocer la app.
+
+```
+{ app, version_app, formato, exportado, idioma,
+  diccionario: { lee_esto, unidades, enlaces, secciones, derivados, formulas, avisos },
+  datos:       { perfil, objetivo, alimentos, menus, diario, compra, meta },
+  derivados:   { periodo, objetivo_en_gramos, dias_registrados, menus } }
+```
+
+Dos reglas que conviene no olvidar al analizarlo: los valores de un alimento van
+por 100 g o 100 ml, y las cantidades de las comidas van siempre en peso crudo.
+
+La importación acepta tanto este formato como el plano de versiones anteriores.
+
 ## Historial
 
+- **v1.4** — Copia de seguridad autodescriptiva, pensada para analizarla con un
+  script: diccionario de campos, unidades y fórmulas, y totales por día ya
+  calculados.
 - **v1.3.2** — La copia de seguridad se puede enviar por correo: en el móvil usa
   el menú de compartir del sistema y adjunta el archivo; en el ordenador lo
   descarga y abre el correo para adjuntarlo a mano.
