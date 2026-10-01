@@ -1,4 +1,4 @@
-# FitCoock v1.4
+# FitCoock v1.4.3
 
 App web de registro de comidas y macros. Funciona sin conexión y se instala como
 PWA. Los datos se guardan en el navegador del dispositivo (localStorage), no en
@@ -27,7 +27,7 @@ Todos van en la **raíz** del repositorio, al mismo nivel.
 Cada vez que modifiques `index.html`, **sube el número de `VERSION` en `sw.js`**:
 
 ```js
-const VERSION = "fitcoock-v1.4";   // → "fitcoock-v1.5"
+const VERSION = "fitcoock-v1.4.3";   // → "fitcoock-v1.5"
 ```
 
 Si no lo haces, el móvil seguirá sirviendo la copia guardada y parecerá que los
@@ -74,13 +74,28 @@ analizarlo con un script sin conocer la app.
   derivados:   { periodo, objetivo_en_gramos, dias_registrados, menus } }
 ```
 
-Dos reglas que conviene no olvidar al analizarlo: los valores de un alimento van
-por 100 g o 100 ml, y las cantidades de las comidas van siempre en peso crudo.
+Dos reglas que conviene no olvidar al analizarlo:
+
+1. Los valores de un alimento van por 100 g o 100 ml.
+2. El campo `g` de un item está en el mismo estado al que se refieren esos
+   valores por 100 (crudo en carne, arroz o pasta; tal cual en conservas y
+   fiambres; ya terminado en los platos). **Los macros se calculan solo con `g`.**
+
+Cada item lleva además `g_cocinado` (= `g` × `factor`) cuando el alimento tiene
+factor. Es **informativo**, para poder decir "140 g de pasta cocida" sin
+recalcular. Aplicarle los valores por 100 falsea el resultado, y el diccionario
+lo avisa en tres sitios.
 
 La importación acepta tanto este formato como el plano de versiones anteriores.
 
 ## Historial
 
+- **v1.4.3** — Al montar un plato, los ingredientes se eligen con un buscador en
+  vez de con un desplegable con todo el catálogo.
+- **v1.4.2** — La copia incluye `g_cocinado` informativo en cada item, con
+  avisos explícitos de que los macros se calculan solo con `g`.
+- **v1.4.1** — La copia de seguridad deja explícito que las cantidades guardadas
+  son siempre peso crudo, aunque el usuario las teclee en cocinado.
 - **v1.4** — Copia de seguridad autodescriptiva, pensada para analizarla con un
   script: diccionario de campos, unidades y fórmulas, y totales por día ya
   calculados.

@@ -201,7 +201,8 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
 .sticky-actions{position:sticky;bottom:0;background:var(--bg);padding-top:12px;margin-top:14px;display:flex;gap:8px}
 .sticky-actions .btn{flex:1}
 .ing{display:flex;gap:6px;align-items:center;margin-bottom:6px}
-.ing select{flex:1;min-width:0}
+.ing .pick{flex:1;min-width:0;justify-content:flex-start;text-align:left;padding:9px 10px}
+.ing .pick span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ing input{width:80px;flex:none}
 .picklist{max-height:44vh;overflow:auto;display:flex;flex-direction:column;gap:6px;margin-top:8px}
 .qty{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0}
@@ -222,7 +223,7 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
         <rect x="11.6" y="12" width="4" height="9" rx="1.4" fill="#B77BFF"/>
         <rect x="16.9" y="1" width="4" height="20" rx="1.4" fill="#3ECF8E"/>
       </svg>
-      <h1>FitCoock</h1><span class="sub">v1.4 · comidas y macros</span>
+      <h1>FitCoock</h1><span class="sub">v1.4.3 · comidas y macros</span>
     </div>
     <nav role="tablist">
       <button role="tab" id="tab-alimentos" aria-selected="true" onclick="setTab('alimentos')"><i>🥕</i>Alimentos</button>
@@ -532,7 +533,11 @@ function totalMenu(m){
 }
 function normalizarMenu(m){
   if(!m.comidas) m.comidas = {};
-  MEALS.forEach(x=>{ if(!Array.isArray(m.comidas[x.k])) m.comidas[x.k]=[]; });
+  MEALS.forEach(x=>{
+    if(!Array.isArray(m.comidas[x.k])) m.comidas[x.k]=[];
+    // g_cocinado solo existe en la copia exportada; dentro de la app estorba
+    m.comidas[x.k].forEach(it=>{ delete it.g_cocinado; });
+  });
   return m;
 }
 function recalcPlatos(){
@@ -1004,11 +1009,13 @@ function aplicarCodigo(){
 
 /* ============ plato ============ */
 let platoTmp = null;
-function abrirPlato(id){
+function abrirPlato(id, mantener){
   const p = id ? byId(id) : null;
-  platoTmp = p
-    ? {id:p.id, nombre:p.nombre, ingredientes:(p.ingredientes||[]).map(i=>({id:i.id,g:i.g})), pesoFinal:p.pesoFinal||"", raciones:p.raciones||1}
-    : {id:null, nombre:"", ingredientes:[{id:"",g:""}], pesoFinal:"", raciones:1};
+  if(!mantener){
+    platoTmp = p
+      ? {id:p.id, nombre:p.nombre, ingredientes:(p.ingredientes||[]).map(i=>({id:i.id,g:i.g})), pesoFinal:p.pesoFinal||"", raciones:p.raciones||1}
+      : {id:null, nombre:"", ingredientes:[{id:"",g:""}], pesoFinal:"", raciones:1};
+  }
   modal(`
     <h3>🍲 ${p?"Editar plato":"Nuevo plato"}</h3>
     <label class="f" for="p-nombre">Nombre del plato</label>
@@ -1035,27 +1042,58 @@ function abrirPlato(id){
     </div>`);
   pintarIngs(); pintarPlato();
 }
-function opcionesIng(sel){
+/* alimentos que puede llevar este plato: todos menos él mismo y los que
+   acabarían dependiendo de él (evita referencias circulares) */
+function candidatosIng(){
   const excl = platoTmp.id;
   return DB.alimentos
     .filter(a=> !excl || !dependeDe(a.id, excl))
-    .sort((a,b)=>a.nombre.localeCompare(b.nombre,"es"))
-    .map(a=>`<option value="${a.id}" ${a.id===sel?"selected":""}>${esc(a.nombre)}${a.tipo==="plato"?" (plato)":""}</option>`)
-    .join("");
+    .sort((a,b)=>a.nombre.localeCompare(b.nombre,"es"));
 }
 function pintarIngs(){
   document.getElementById("p-ings").innerHTML = platoTmp.ingredientes.map((ing,i)=>{
     const a = byId(ing.id);
     return `
     <div class="ing">
-      <select onchange="platoTmp.ingredientes[${i}].id=this.value;pintarIngs();pintarPlato()">
-        <option value="">— elegir —</option>${opcionesIng(ing.id)}
-      </select>
+      <button class="btn pick" onclick="buscarIngrediente(${i})">
+        ${a ? `<span>${esc(a.nombre)}</span>` : '<span class="muted">🔍 Elegir alimento…</span>'}
+      </button>
       <input inputmode="decimal" placeholder="${a?uni(a):"g"}" value="${ing.g}" oninput="platoTmp.ingredientes[${i}].g=this.value;pintarPlato()">
       <button class="btn small ghost" onclick="platoTmp.ingredientes.splice(${i},1);pintarIngs();pintarPlato()" aria-label="Quitar">✕</button>
     </div>`;
   }).join("");
 }
+let ingBuscado = 0;
+function buscarIngrediente(i){
+  ingBuscado = i;
+  modal(`
+    <h3>🥄 Elegir ingrediente</h3>
+    <input id="bi-txt" placeholder="🔍  Buscar por nombre, súper o código" oninput="pintarBuscaIng()">
+    <div id="bi-lista" class="picklist"></div>
+    <div class="sticky-actions"><button class="btn" onclick="volverAlPlato()">Cancelar</button></div>`);
+  pintarBuscaIng();
+  setTimeout(()=>{const e=document.getElementById("bi-txt"); if(e) e.focus();},50);
+}
+function pintarBuscaIng(){
+  const q = (document.getElementById("bi-txt").value||"").trim().toLowerCase();
+  const lista = candidatosIng().filter(a=> !q
+    || a.nombre.toLowerCase().includes(q)
+    || String(a.codigo||"").includes(q)
+    || (a.tipo!=="plato" && sup(a.super).n.toLowerCase().includes(q)));
+  document.getElementById("bi-lista").innerHTML = lista.length
+    ? lista.slice(0,60).map(a=>`
+      <button class="fitem" onclick="elegirIngrediente('${a.id}')">
+        ${badgeDe(a)}
+        <span class="grow"><span class="nm">${esc(a.nombre)}${a.tipo==='plato'?'<span class="tag plato">plato</span>':tagSuper(a)}</span></span>
+        <span class="num small muted">${f0(a.kcal)} kcal</span></button>`).join("")
+      + (lista.length>60?'<p class="small muted" style="text-align:center">Afina la búsqueda: hay más resultados</p>':"")
+    : '<div class="empty">Nada coincide.</div>';
+}
+function elegirIngrediente(id){
+  platoTmp.ingredientes[ingBuscado].id = id;
+  volverAlPlato();
+}
+function volverAlPlato(){ abrirPlato(platoTmp.id, true); }
 function addIng(){ platoTmp.ingredientes.push({id:"",g:""}); pintarIngs(); }
 function pintarPlato(){
   let t = Object.assign({},CEROS), crudo = 0, cocinado = 0, cost = 0, faltaPrecio = false;
@@ -2063,7 +2101,7 @@ function usarGasto(kcal){
    El archivo se genera autodescriptivo: lleva un diccionario con el significado
    y las unidades de cada campo, para que un script pueda analizarlo sin conocer
    la app, y una sección de totales ya calculados. */
-const APP_VERSION = "1.4";
+const APP_VERSION = "1.4.3";
 const FORMATO_COPIA = 2;
 
 const DICCIONARIO = {
@@ -2071,7 +2109,9 @@ const DICCIONARIO = {
     "Registro de comidas y macros de una persona. Todo el contenido está en 'datos'.",
     "'derivados' son totales ya calculados a partir de 'datos'; son redundantes y se pueden recalcular.",
     "Los valores nutricionales de un alimento van SIEMPRE por 100 unidades de medida (100 g o 100 ml, según su campo 'unidad').",
-    "Las cantidades dentro de las comidas van SIEMPRE en peso crudo, sin cocinar, en la unidad del alimento.",
+    "REGLA QUE NO FALLA: el campo 'g' de un item está siempre en el MISMO estado al que se refieren los valores por 100 de ese alimento. Por eso el cálculo es siempre g * valor_por_100 / 100, sin convertir nada. En la práctica: producto con factor > 0 (carne, arroz, pasta) = peso crudo; producto ya listo (conserva, fiambre, queso, precocinado) = tal cual se come; alimento de tipo 'plato' = gramos del plato ya terminado, porque un plato se mide por su pesoTotal, que es peso cocinado.",
+    "CRUDO Y COCINADO, LÉELO ANTES DE CALCULAR NADA: el campo 'g' de cada item es peso CRUDO, y los valores por 100 del alimento se refieren al producto en ese mismo estado crudo. Los macros se calculan SIEMPRE con 'g'. El campo 'g_cocinado' es un añadido informativo (g * factor) para poder hablarle al usuario en los términos en que él pesa la comida en el plato; aplicarle los valores por 100 falsea el cálculo y da cifras infladas o rebajadas según el alimento.",
+    "La app deja teclear el peso ya cocinado, pero lo divide entre el 'factor' ANTES de guardarlo, así que en el archivo ya está convertido a crudo. No vuelvas a convertir nada.",
     "Las claves de texto (id, codigo) enlazan registros entre secciones; ver 'enlaces'."
   ],
   unidades: {
@@ -2108,7 +2148,7 @@ const DICCIONARIO = {
         gra: "gramos de grasa por 100 unidades",
         fib: "gramos de fibra por 100 unidades",
         precio: "euros por kilo o litro; 0 = sin dato",
-        factor: "cuánto pesa al cocinarse respecto al peso crudo (0,75 = pierde el 25 %; 2,5 = el arroz absorbe agua). 0 = sin dato o no aplica",
+        factor: "cuánto pesa al cocinarse respecto al peso crudo (0,75 = pierde el 25 %; 2,5 = el arroz absorbe agua). 0 = sin dato o no aplica. Solo sirve para convertir pesos al introducirlos y para estimar el peso de un plato: los valores nutricionales de este alimento se refieren al producto en el estado en que el usuario copió la etiqueta, y los 'g' guardados ya son coherentes con ellos",
         ingredientes: "solo en tipo 'plato': lista de {id, g} en peso crudo",
         pesoFinal: "solo en 'plato': peso del plato ya cocinado si el usuario lo pesó; 0 = estimado con los factores",
         pesoTotal: "solo en 'plato': peso del plato terminado que se usa en los cálculos, en gramos",
@@ -2135,8 +2175,10 @@ const DICCIONARIO = {
       que_es: "Cada elemento de una lista de comidas tiene una de estas dos formas",
       forma_1_del_catalogo: {
         id: "→ alimentos[].id",
-        g: "cantidad en peso CRUDO, en la unidad de ese alimento",
-        calculo: "macro = alimentos[id][macro] * g / 100"
+        g: "cantidad en la unidad de ese alimento. ES EL ÚNICO CAMPO CON EL QUE SE CALCULAN LOS MACROS",
+        crudo_o_cocinado: "En un producto básico con factor > 0 es peso CRUDO: si el usuario lo pesó ya cocinado, la app hizo g = peso_cocinado / factor al guardarlo, así que aquí ya viene convertido. En un producto sin factor es el peso tal cual se come. En un alimento de tipo 'plato' son gramos del plato YA TERMINADO, porque los valores por 100 de un plato se calculan sobre su pesoTotal, que es el peso cocinado. En los tres casos g casa con los valores por 100 del alimento, que es lo único que importa para calcular.",
+        calculo: "macro = alimentos[id][macro] * g / 100",
+        g_cocinado: "SOLO INFORMATIVO, y solo aparece si el alimento tiene factor > 0 (en un plato no aparece: su g ya es peso cocinado). Es g * factor: lo que pesa ya hecho, que es como el usuario lo ve en el plato. Úsalo para redactar ('unos 140 g de pasta cocida'), NUNCA para calcular. Los valores por 100 del alimento corresponden al producto crudo, así que multiplicarlos por g_cocinado da un resultado falso."
       },
       forma_2_estimacion_libre: {
         libre: "true. Comida fuera de casa estimada a ojo, sin producto en el catálogo",
@@ -2178,7 +2220,7 @@ const DICCIONARIO = {
     objetivo_prot_g: "modoProt='pct': kcal*pProt/100/4. modoProt='gkg': perfil.peso*protGkg",
     objetivo_hid_y_gra_g: "resto = kcal - prot_g*4; hid_g = resto*(pHid/(pHid+pGra))/4; gra_g = resto*(pGra/(pHid+pGra))/9",
     plato_por_100g: "se suman los macros de sus ingredientes y se divide entre pesoTotal, *100. Ya viene calculado en los campos kcal/prot/hid/gra/fib del plato.",
-    peso_cocinado: "peso_crudo * factor",
+    peso_cocinado: "peso_crudo * factor  (y a la inversa, peso_crudo = peso_cocinado / factor, que es la conversión que hace la app al guardar)",
     coste_de_un_item: "precio * g / 1000"
   },
   derivados: {
@@ -2196,6 +2238,8 @@ const DICCIONARIO = {
     menus: "totales de cada plantilla de menú, para comparar plantillas entre sí"
   },
   avisos: [
+    "No calcules macros con g_cocinado. Ese campo existe para hablar con el usuario en sus términos; el cálculo va con g, en crudo.",
+    "Un alimento con factor 0 puede ser que no cambie de peso al cocinarse (fiambre, queso, conserva, producto ya cocinado) o que el usuario no haya rellenado el dato. La copia no distingue ambos casos: si necesitas el peso cocinado de uno de esos, pregúntale.",
     "Los días del diario son autodeclarados y pueden faltar comidas o días enteros: no asumas que un día con 900 kcal es una restricción real.",
     "Los items con libre=true son estimaciones a ojo.",
     "Los valores nutricionales de los alimentos los copió el usuario de las etiquetas: pueden tener erratas. La fórmula kcal_desde_macros sirve para detectarlas."
@@ -2236,6 +2280,24 @@ function derivados(){
     menus: DB.menus.map(m=>Object.assign({id:m.id, nombre:m.nombre}, totalesDe(m.comidas)))
   };
 }
+/* Para la copia: cada item lleva además su peso cocinado, solo informativo.
+   Los datos guardados en la app NO cambian: ahí el peso sigue siendo solo crudo. */
+function itemsExport(lista){
+  return (lista||[]).map(it=>{
+    const o = Object.assign({}, it);
+    if(!it.libre){
+      const a = byId(it.id);
+      const f = a ? num(a.factor) : 0;
+      if(f > 0) o.g_cocinado = r1(num(it.g)*f);
+    }
+    return o;
+  });
+}
+function comidasExport(comidas){
+  const c = {};
+  MEALS.forEach(x=>{ c[x.k] = itemsExport(comidas[x.k]); });
+  return c;
+}
 function copiaCompleta(){
   return {
     app: "FitCoock",
@@ -2248,8 +2310,11 @@ function copiaCompleta(){
       perfil: DB.perfil,
       objetivo: DB.objetivo,
       alimentos: DB.alimentos,
-      menus: DB.menus,
-      diario: DB.diario,
+      menus: DB.menus.map(m=>({id:m.id, nombre:m.nombre, comidas:comidasExport(m.comidas)})),
+      diario: Object.keys(DB.diario).sort().reduce((acc,f)=>{
+        acc[f] = {origen:DB.diario[f].origen||null, comidas:comidasExport(DB.diario[f].comidas)};
+        return acc;
+      }, {}),
       compra: DB.compra,
       meta: DB.meta
     },
