@@ -183,6 +183,7 @@ label.f{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
 .mi:last-child{border-bottom:none}
 .mi .nm{font-size:14px}
 .addline{padding:9px 12px}
+.addline.row{flex-wrap:wrap}
 
 .modal{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;background:rgba(3,6,9,.7)}
 .sheet{
@@ -223,7 +224,7 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
         <rect x="11.6" y="12" width="4" height="9" rx="1.4" fill="#B77BFF"/>
         <rect x="16.9" y="1" width="4" height="20" rx="1.4" fill="#3ECF8E"/>
       </svg>
-      <h1>FitCoock</h1><span class="sub">v1.4.4 · comidas y macros</span>
+      <h1>FitCoock</h1><span class="sub">v1.4.6 · comidas y macros</span>
     </div>
     <nav role="tablist">
       <button role="tab" id="tab-alimentos" aria-selected="true" onclick="setTab('alimentos')"><i>🥕</i>Alimentos</button>
@@ -1278,15 +1279,17 @@ function renderMenus(){
         const t = totalMenu(m);
         const o = objetivoGramos();
         const dif = t.kcal - o.kcal;
-        const col = "var(--accent)";
+        const am = ambito(m);
+        const completo = comidasLlenas(m).length === MEALS.length;
+        const col = am.c;
         return `<button class="fitem" onclick="abrirMenu('${m.id}')">
-          <span class="badge" style="background:rgba(52,211,192,.16)">🍽️</span>
+          <span class="badge" style="background:${am.c}22">${am.ic}</span>
           <span class="grow">
-            <span class="nm">${esc(m.nombre)}</span>
+            <span class="nm">${esc(m.nombre)}<span class="tag" style="color:${am.c};background:${am.c}22">${am.txt}</span></span>
             ${pills(t,true)}
           </span>
           <span class="kcalbig num" style="color:${col}">${f0(t.kcal)}
-            <small class="${dif>0?"up":"down"}">${dif>0?"▲ +":"▼ −"}${f0(Math.abs(dif))} kcal</small></span>
+            <small class="${completo?(dif>0?"up":"down"):""}">${completo?(dif>0?"▲ +":"▼ −")+f0(Math.abs(dif))+" kcal":"kcal"}</small></span>
         </button>`;
       }).join("") : `<div class="empty"><span class="big">🍽️</span>${DB.menus.length?"No hay menús de este tipo.":"Todavía no hay menús. Crea uno y guárdalo para reutilizarlo cualquier día."}</div>`}
     </div>`;
@@ -1298,6 +1301,15 @@ function nuevoMenu(){
 }
 function abrirMenu(id){ menuAbierto = id; renderMenus(); window.scrollTo(0,0); }
 function volverAMenus(){ menuAbierto = null; renderMenus(); window.scrollTo(0,0); }
+/* un menú de la biblioteca puede cubrir el día entero o una sola comida */
+function comidasLlenas(m){ return MEALS.filter(x=>(m.comidas[x.k]||[]).length); }
+function ambito(m){
+  const ll = comidasLlenas(m);
+  if(!ll.length)            return {txt:"Vacío",        ic:"🍽️", c:"var(--muted)"};
+  if(ll.length===1)         return {txt:ll[0].n,        ic:ll[0].ic, c:ll[0].c};
+  if(ll.length===MEALS.length) return {txt:"Día completo", ic:"🍽️", c:"var(--accent)"};
+  return {txt:ll.length+" comidas", ic:"🍽️", c:"var(--accent)"};
+}
 function copiaComidas(origen){
   const c = {};
   MEALS.forEach(x=> c[x.k] = (origen[x.k]||[]).map(i=>Object.assign({}, i)));
@@ -1356,12 +1368,61 @@ function cargarMenuEnDia(){
 function elegirMenuDia(id){
   const m = menuById(id); if(!m) return;
   const d = diaActual();
-  if(d && MEALS.some(x=>(d.comidas[x.k]||[]).length)){
+  const ll = comidasLlenas(m);
+  const parcial = ll.length < MEALS.length;
+  if(!d){ crearDia(m); cerrarModal(); toast("Cargado en el día"); return; }
+
+  if(parcial){
+    // solo toca las comidas que trae el menú; el resto del día se queda como está
+    const pisa = ll.filter(x=>(d.comidas[x.k]||[]).length).map(x=>x.n.toLowerCase());
+    const hacer = ()=>{
+      ll.forEach(x=>{ d.comidas[x.k] = (m.comidas[x.k]||[]).map(i=>Object.assign({}, i)); });
+      guardar(); renderDiario(); toast("Cargado: "+ll.map(x=>x.n.toLowerCase()).join(", "));
+    };
+    if(pisa.length){
+      confirmar("Sustituir "+pisa.join(" y "),
+        "«"+m.nombre+"» solo trae "+ll.map(x=>x.n.toLowerCase()).join(", ")+". Se sustituye lo que tengas ahí; el resto del día no se toca.",
+        hacer, "Sustituir");
+    } else { hacer(); cerrarModal(); }
+    return;
+  }
+  if(MEALS.some(x=>(d.comidas[x.k]||[]).length)){
     confirmar("Sustituir el día", "Se borra lo apuntado en este día y se copia «"+m.nombre+"».",
       ()=>{ crearDia(m); toast("Menú cargado en el día"); }, "Sustituir");
     return;
   }
   crearDia(m); cerrarModal(); toast("Menú cargado en el día");
+}
+/* copiar un día entero ya registrado sobre el día actual */
+function copiarDiaEntero(){
+  const dias = Object.keys(DB.diario)
+    .filter(f=> f!==fechaDiario && MEALS.some(x=>(DB.diario[f].comidas[x.k]||[]).length))
+    .sort().reverse().slice(0,14);
+  if(!dias.length){
+    modal(`<h3>📅 Sin días anteriores</h3><div class="empty">Todavía no hay ningún otro día registrado.</div>
+      <div class="sticky-actions"><button class="btn" onclick="cerrarModal()">Cerrar</button></div>`);
+    return;
+  }
+  modal(`<h3>📅 Copiar otro día</h3>
+    <div class="picklist">
+      ${dias.map(f=>{
+        const dd = DB.diario[f];
+        const t = totalMenu(dd);
+        const cuantas = MEALS.filter(x=>(dd.comidas[x.k]||[]).length).length;
+        return `<button class="fitem" onclick="aplicarCopiaDia('${f}')">
+          <span class="badge" style="background:rgba(52,211,192,.16)">📅</span>
+          <span class="grow"><span class="nm">${fechaCorta(f)}</span>
+            <span class="sub">${cuantas} comida(s)${dd.origen?" · "+esc(dd.origen):""}</span></span>
+          <span class="kcalbig num">${f0(t.kcal)}<small>kcal</small></span>
+        </button>`;
+      }).join("")}
+    </div>
+    <div class="sticky-actions"><button class="btn" onclick="cerrarModal()">Cerrar</button></div>`);
+}
+function aplicarCopiaDia(f){
+  const o = DB.diario[f]; if(!o) return;
+  DB.diario[fechaDiario] = normalizarMenu({origen:o.origen||("día "+fechaCorta(f)), comidas:copiaComidas(o.comidas)});
+  guardar(); cerrarModal(); renderDiario(); toast("Día copiado del "+fechaCorta(f));
 }
 function guardarDiaComoMenu(){
   const d = diaActual(); if(!d) return;
@@ -1414,10 +1475,11 @@ function renderDiario(){
   if(!d){
     cont.innerHTML = cabecera + `
       <div class="empty" style="margin-top:14px"><span class="big">📅</span>Sin nada apuntado este día.</div>
-      <div class="row" style="margin-top:10px">
-        <button class="btn primary grow" onclick="cargarMenuEnDia()">📖 Cargar un menú</button>
-        <button class="btn grow" onclick="crearDia(null)">＋ Empezar en blanco</button>
-      </div>` + pie;
+      <div class="row" style="margin-top:10px;flex-wrap:wrap">
+        <button class="btn primary grow" onclick="cargarMenuEnDia()">📖 De la biblioteca</button>
+        <button class="btn grow" onclick="copiarDiaEntero()">📅 De otro día</button>
+      </div>
+      <button class="btn" style="width:100%;margin-top:8px" onclick="crearDia(null)">＋ Empezar en blanco</button>` + pie;
     return;
   }
   cont.innerHTML = cabecera + `
@@ -1426,7 +1488,8 @@ function renderDiario(){
     </p>
     ${bloqueMenu(d)}
     <div class="row" style="margin-top:13px">
-      <button class="btn grow small" onclick="cargarMenuEnDia()">📖 Cambiar menú</button>
+      <button class="btn grow small" onclick="cargarMenuEnDia()">📖 Biblioteca</button>
+      <button class="btn grow small" onclick="copiarDiaEntero()">📅 Otro día</button>
       <button class="btn grow small" onclick="guardarDiaComoMenu()">💾 Guardar como menú</button>
       <button class="btn danger small" onclick="vaciarDia()">🗑</button>
     </div>` + pie;
@@ -1556,6 +1619,87 @@ function costeDetalle(m){
   return {coste:c, sinPrecio, estimados};
 }
 function costeMenu(m){ return costeDetalle(m).coste; }
+function diasConComida(mealKey){
+  return Object.keys(DB.diario)
+    .filter(f => f !== fechaDiario && (DB.diario[f].comidas[mealKey]||[]).length)
+    .sort().reverse();
+}
+function guardarComidaEnBiblioteca(mealKey){
+  const m = menuActual(); if(!m) return;
+  const items = m.comidas[mealKey]||[];
+  if(!items.length){ toast("Esta comida está vacía"); return; }
+  const nom = meal(mealKey);
+  const primero = items[0].libre ? (items[0].nombre||"") : ((byId(items[0].id)||{}).nombre||"");
+  pedirTexto("💾 Guardar "+nom.n.toLowerCase()+" en la biblioteca",
+    nom.n + (primero ? " de "+primero.toLowerCase().split(" ").slice(0,3).join(" ") : ""),
+    nombre=>{
+      const nuevo = normalizarMenu({id:uid(), nombre, comidas:{}});
+      nuevo.comidas[mealKey] = items.map(i=>Object.assign({}, i));
+      DB.menus.push(nuevo); guardar();
+      toast("Guardado en la biblioteca");
+    });
+}
+function menusConComida(mealKey){
+  return DB.menus.filter(m=>(m.comidas[mealKey]||[]).length)
+                 .sort((a,b)=>a.nombre.localeCompare(b.nombre,"es"));
+}
+function hayDondeCopiar(mealKey){
+  return diasConComida(mealKey).length + menusConComida(mealKey).length;
+}
+function copiarComidaDe(mealKey){
+  const dias = diasConComida(mealKey).slice(0,12);
+  const menus = menusConComida(mealKey);
+  const m = menuActual();
+  const yaHay = m ? (m.comidas[mealKey]||[]).length : 0;
+  const nom = meal(mealKey);
+  modal(`
+    <h3>${nom.ic} Copiar ${esc(nom.n.toLowerCase())}</h3>
+    ${yaHay ? `<p class="small muted" style="margin:0 0 10px">Se añadirá a lo que ya tienes aquí (${yaHay} elemento(s)).</p>` : ""}
+    ${menus.length ? `<h2 style="margin:4px 0 7px">📖 De la biblioteca</h2>
+    <div class="picklist" style="max-height:28vh">
+      ${menus.map(mm=>{
+        const items = mm.comidas[mealKey];
+        const t = totalItems(items);
+        const nombres = items.map(it=> it.libre ? (it.nombre||"comida fuera") : (byId(it.id)||{}).nombre).filter(Boolean).join(", ");
+        return `<button class="fitem" onclick="aplicarCopiaComida('${mealKey}','menu','${mm.id}')">
+          <span class="badge" style="background:${nom.c}22">${nom.ic}</span>
+          <span class="grow"><span class="nm">${esc(mm.nombre)}</span>
+            <span class="sub">${esc(nombres.slice(0,70))}${nombres.length>70?"…":""}</span></span>
+          <span class="kcalbig num">${f0(t.kcal)}<small>kcal</small></span>
+        </button>`;
+      }).join("")}
+    </div>` : ""}
+    ${dias.length ? `<h2 style="margin:12px 0 7px">📅 De otro día</h2>` : ""}
+    <div class="picklist">
+      ${dias.map(f=>{
+        const items = DB.diario[f].comidas[mealKey];
+        const t = totalItems(items);
+        const nombres = items.map(it=> it.libre ? (it.nombre||"comida fuera") : (byId(it.id)||{}).nombre)
+                             .filter(Boolean).join(", ");
+        return `<button class="fitem" onclick="aplicarCopiaComida('${mealKey}','dia','${f}')">
+          <span class="badge" style="background:${nom.c}22">${nom.ic}</span>
+          <span class="grow"><span class="nm">${fechaCorta(f)}</span>
+            <span class="sub">${esc(nombres.slice(0,70))}${nombres.length>70?"…":""}</span></span>
+          <span class="kcalbig num">${f0(t.kcal)}<small>kcal</small></span>
+        </button>`;
+      }).join("")}
+    </div>
+    <div class="sticky-actions"><button class="btn" onclick="cerrarModal()">Cerrar</button></div>`);
+}
+function aplicarCopiaComida(mealKey, tipo, id){
+  const m = menuActual(); if(!m) return;
+  let origen = [], de = "";
+  if(tipo === "menu"){
+    const mm = menuById(id); if(!mm) return;
+    origen = mm.comidas[mealKey]||[]; de = "«"+mm.nombre+"»";
+  } else {
+    const d = DB.diario[id]; if(!d) return;
+    origen = d.comidas[mealKey]||[]; de = "del "+fechaCorta(id);
+  }
+  origen.forEach(it => m.comidas[mealKey].push(Object.assign({}, it)));
+  guardar(); cerrarModal(); refrescarEditor();
+  toast(origen.length+" elemento(s) copiados "+de);
+}
 function bloqueMenu(m){
   const t = totalMenu(m);
   const o = objetivoGramos();
@@ -1607,8 +1751,10 @@ function bloqueMenu(m){
               }).join("")}
             </div>
             <div class="addline row">
-              <button class="btn small ghost grow" onclick="abrirSelector('${x.k}')">＋ De mis alimentos</button>
-              <button class="btn small ghost grow" onclick="abrirLibre('${x.k}',null)">🍴 Comida fuera</button>
+              <button class="btn small ghost grow" onclick="abrirSelector('${x.k}')">＋ Alimento</button>
+              <button class="btn small ghost grow" onclick="abrirLibre('${x.k}',null)">🍴 Fuera</button>
+              ${hayDondeCopiar(x.k) ? `<button class="btn small ghost grow" onclick="copiarComidaDe('${x.k}')">⧉ Copiar</button>` : ""}
+              ${items.length ? `<button class="btn small ghost grow" onclick="guardarComidaEnBiblioteca('${x.k}')">💾 Guardar</button>` : ""}
             </div>
           </div>`;
       }).join("")}
@@ -2117,7 +2263,7 @@ function usarGasto(kcal){
    El archivo se genera autodescriptivo: lleva un diccionario con el significado
    y las unidades de cada campo, para que un script pueda analizarlo sin conocer
    la app, y una sección de totales ya calculados. */
-const APP_VERSION = "1.4.4";
+const APP_VERSION = "1.4.6";
 const FORMATO_COPIA = 2;
 
 const DICCIONARIO = {
