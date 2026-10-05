@@ -223,7 +223,7 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
         <rect x="11.6" y="12" width="4" height="9" rx="1.4" fill="#B77BFF"/>
         <rect x="16.9" y="1" width="4" height="20" rx="1.4" fill="#3ECF8E"/>
       </svg>
-      <h1>FitCoock</h1><span class="sub">v1.4.3 · comidas y macros</span>
+      <h1>FitCoock</h1><span class="sub">v1.4.4 · comidas y macros</span>
     </div>
     <nav role="tablist">
       <button role="tab" id="tab-alimentos" aria-selected="true" onclick="setTab('alimentos')"><i>🥕</i>Alimentos</button>
@@ -1167,11 +1167,15 @@ function renderSemana(){
     if(!d || !MEALS.some(x=>(d.comidas[x.k]||[]).length)) return {f, vacio:true};
     const t = totalMenu(d), o = objetivoGramos();
     const pct = o.kcal>0 ? t.kcal/o.kcal*100 : 0;
-    return {f, vacio:false, t, o, pct};
+    const c = costeDetalle(d);
+    return {f, vacio:false, t, o, pct, coste:c.coste, sinPrecio:c.sinPrecio, estimados:c.estimados};
   });
   const conDatos = filas.filter(x=>!x.vacio);
   const media = k => conDatos.length ? conDatos.reduce((s,x)=>s+x.t[k],0)/conDatos.length : 0;
   const dentro = conDatos.filter(x=>Math.abs(x.pct-100)<=10).length;
+  const costeTotal = conDatos.reduce((s,x)=>s+x.coste, 0);
+  const faltanPrecios = conDatos.reduce((s,x)=>s+x.sinPrecio, 0);
+  const hayEstimados = conDatos.reduce((s,x)=>s+x.estimados, 0);
   const maxK = Math.max(1, ...conDatos.map(x=>x.t.kcal), ...conDatos.map(x=>x.o.kcal));
   const colorPct = p => p>110 ? "var(--prot)" : (p>=90 ? "var(--fib)" : (p>0 ? "var(--accent)" : "var(--surface2)"));
 
@@ -1209,9 +1213,19 @@ function renderSemana(){
       <div class="row" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line-soft)">
         <span class="small muted">Media de macros</span>
         <span class="mps" style="margin:0">${conDatos.length?`<span class="mp p">P ${f1(media("prot"))}</span><span class="mp h">H ${f1(media("hid"))}</span><span class="mp g">G ${f1(media("gra"))}</span><span class="mp f">F ${f1(media("fib"))}</span>`:"—"}</span></div>
-      <div class="row" style="justify-content:space-between;padding:6px 0">
+      <div class="row" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line-soft)">
         <span class="small muted">Días dentro del ±10 %</span>
         <b class="num" style="color:${conDatos.length && dentro/conDatos.length>=0.7?"var(--fib)":"var(--hid)"}">${dentro} de ${conDatos.length||0}</b></div>
+      <div class="row" style="justify-content:space-between;padding:6px 0">
+        <span class="small muted">Coste medio diario</span>
+        <b class="num">${conDatos.length && costeTotal>0 ? eur(costeTotal/conDatos.length) : "—"}</b></div>
+      ${conDatos.length && costeTotal>0 ? `<div class="row" style="justify-content:space-between;padding:0 0 4px">
+        <span class="small muted">Total de los ${conDatos.length} día(s)</span>
+        <span class="small num muted">${eur(costeTotal)}</span></div>` : ""}
+      ${costeTotal>0 && (faltanPrecios||hayEstimados) ? `<p class="small muted" style="margin:6px 0 0">⚠ Coste parcial:${
+          faltanPrecios?` ${faltanPrecios} alimento(s) sin precio en la ficha`:""}${
+          faltanPrecios&&hayEstimados?" y":""}${
+          hayEstimados?` ${hayEstimados} comida(s) fuera de casa, que no se compran`:""}.</p>` : ""}
       ${conDatos.length ? "" : '<p class="small muted" style="margin:8px 0 0">Sin días registrados esta semana.</p>'}
     </div>`;
 }
@@ -1531,15 +1545,17 @@ function barra(icono, label, valor, objetivo, color){
       </div>
     </div>`;
 }
-function costeMenu(m){
-  let c = 0;
+function costeDetalle(m){
+  let c = 0, sinPrecio = 0, estimados = 0;
   MEALS.forEach(x=>(m.comidas[x.k]||[]).forEach(it=>{
-    if(it.libre) return;
+    if(it.libre){ estimados++; return; }     // comida fuera: no tiene precio de compra
     const a = byId(it.id);
-    if(a) c += coste(a, num(it.g));
+    if(!a) return;
+    if(num(a.precio) > 0) c += coste(a, num(it.g)); else sinPrecio++;
   }));
-  return c;
+  return {coste:c, sinPrecio, estimados};
 }
+function costeMenu(m){ return costeDetalle(m).coste; }
 function bloqueMenu(m){
   const t = totalMenu(m);
   const o = objetivoGramos();
@@ -2101,7 +2117,7 @@ function usarGasto(kcal){
    El archivo se genera autodescriptivo: lleva un diccionario con el significado
    y las unidades de cada campo, para que un script pueda analizarlo sin conocer
    la app, y una sección de totales ya calculados. */
-const APP_VERSION = "1.4.3";
+const APP_VERSION = "1.4.4";
 const FORMATO_COPIA = 2;
 
 const DICCIONARIO = {

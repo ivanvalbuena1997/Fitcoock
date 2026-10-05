@@ -1,4 +1,4 @@
-# FitCoock v1.4.3
+# FitCoock v1.4.4
 
 App web de registro de comidas y macros. Funciona sin conexión y se instala como
 PWA. Los datos se guardan en el navegador del dispositivo (localStorage), no en
@@ -27,7 +27,7 @@ Todos van en la **raíz** del repositorio, al mismo nivel.
 Cada vez que modifiques `index.html`, **sube el número de `VERSION` en `sw.js`**:
 
 ```js
-const VERSION = "fitcoock-v1.4.3";   // → "fitcoock-v1.5"
+const VERSION = "fitcoock-v1.4.4";   // → "fitcoock-v1.5"
 ```
 
 Si no lo haces, el móvil seguirá sirviendo la copia guardada y parecerá que los
@@ -90,6 +90,8 @@ La importación acepta tanto este formato como el plano de versiones anteriores.
 
 ## Historial
 
+- **v1.4.4** — La vista semanal muestra el coste medio diario y el total de la
+  semana, avisando cuando el cálculo es parcial.
 - **v1.4.3** — Al montar un plato, los ingredientes se eligen con un buscador en
   vez de con un desplegable con todo el catálogo.
 - **v1.4.2** — La copia incluye `g_cocinado` informativo en cada item, con
