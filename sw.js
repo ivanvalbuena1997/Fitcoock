@@ -1,7 +1,7 @@
 /* FitCoock — service worker
    Sube el número de VERSION cada vez que cambies index.html:
    así el móvil se entera de que hay una versión nueva y descarta la antigua. */
-const VERSION = "fitcoock-v1.4.6";
+const VERSION = "fitcoock-v1.4.7";
 
 const ARCHIVOS = [
   "./",

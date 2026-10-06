@@ -224,7 +224,7 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
         <rect x="11.6" y="12" width="4" height="9" rx="1.4" fill="#B77BFF"/>
         <rect x="16.9" y="1" width="4" height="20" rx="1.4" fill="#3ECF8E"/>
       </svg>
-      <h1>FitCoock</h1><span class="sub">v1.4.6 · comidas y macros</span>
+      <h1>FitCoock</h1><span class="sub">v1.4.7 · comidas y macros</span>
     </div>
     <nav role="tablist">
       <button role="tab" id="tab-alimentos" aria-selected="true" onclick="setTab('alimentos')"><i>🥕</i>Alimentos</button>
@@ -246,6 +246,7 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
       <button class="chip" id="f-todos" aria-pressed="true" onclick="setFiltro('todos')">Todos</button>
       <button class="chip" id="f-basico" aria-pressed="false" onclick="setFiltro('basico')">🥕 Productos</button>
       <button class="chip" id="f-plato" aria-pressed="false" onclick="setFiltro('plato')">🍲 Platos</button>
+      <button class="chip" id="f-sinprecio" aria-pressed="false" onclick="toggleSinPrecio()">💶 Sin precio</button>
     </div>
     <div class="chips wrapx" id="super-filtros"></div>
     <div class="row" style="margin-bottom:12px">
@@ -253,6 +254,7 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
       <select id="orden" onchange="ordenAlim=this.value;renderAlimentos()">
         <option value="nombre">Nombre</option>
         <option value="densidad">Proteína por 100 kcal</option>
+        <option value="densidad_hid">Hidratos por 100 kcal</option>
         <option value="kcal">Calorías</option>
         <option value="precio">Precio</option>
       </select>
@@ -408,6 +410,7 @@ let DB = {
 
 let filtro = "todos";
 let ordenAlim = "nombre";
+let soloSinPrecio = false;
 let filtroSuper = "todos";
 let vistaMenus = "biblioteca";
 let fechaDiario = todayISO();
@@ -462,6 +465,7 @@ function cantidadTexto(v, u){
 function eur(n){ return n.toLocaleString("es-ES",{minimumFractionDigits:2, maximumFractionDigits:2})+" €"; }
 function coste(a, g){ return num(a && a.precio) > 0 ? num(a.precio)*g/1000 : 0; }
 function densidad(a){ return num(a.kcal) > 0 ? num(a.prot)/num(a.kcal)*100 : 0; }
+function densidadHid(a){ return num(a.kcal) > 0 ? num(a.hid)/num(a.kcal)*100 : 0; }
 /* comparación de nombres para detectar duplicados */
 function clave(s){
   return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
@@ -621,6 +625,11 @@ function setTab(t){
   if(t==="compra") renderCompra();
   window.scrollTo(0,0);
 }
+function toggleSinPrecio(){
+  soloSinPrecio = !soloSinPrecio;
+  document.getElementById("f-sinprecio").setAttribute("aria-pressed", String(soloSinPrecio));
+  renderAlimentos();
+}
 function setFiltro(f){
   filtro=f;
   ["todos","basico","plato"].forEach(x=>document.getElementById("f-"+x).setAttribute("aria-pressed", String(x===f)));
@@ -645,16 +654,20 @@ function renderAlimentos(){
   let lista = DB.alimentos.slice();
   if(filtro!=="todos") lista = lista.filter(a=>a.tipo===filtro);
   if(filtroSuper!=="todos") lista = lista.filter(a=>a.tipo!=="plato" && (a.super||"generico")===filtroSuper);
+  if(soloSinPrecio) lista = lista.filter(a=> a.tipo==="plato" ? a.precioIncompleto : !(num(a.precio)>0));
   if(q) lista = lista.filter(a=>a.nombre.toLowerCase().includes(q) || String(a.codigo||"").includes(q) || (a.tipo!=="plato" && sup(a.super).n.toLowerCase().includes(q)));
 
   if(ordenAlim==="densidad") lista.sort((a,b)=>densidad(b)-densidad(a));
+  else if(ordenAlim==="densidad_hid") lista.sort((a,b)=>densidadHid(b)-densidadHid(a));
   else if(ordenAlim==="kcal") lista.sort((a,b)=>num(b.kcal)-num(a.kcal));
   else if(ordenAlim==="precio") lista.sort((a,b)=>(num(a.precio)||1e9)-(num(b.precio)||1e9));
   else lista.sort((a,b)=>a.nombre.localeCompare(b.nombre,"es"));
 
   if(!lista.length){
     cont.innerHTML = DB.alimentos.length
-      ? '<div class="empty"><span class="big">🔍</span>Nada coincide con los filtros.</div>'
+      ? (soloSinPrecio
+          ? '<div class="empty"><span class="big">✓</span>Todo lo que encaja con estos filtros ya tiene precio.</div>'
+          : '<div class="empty"><span class="big">🔍</span>Nada coincide con los filtros.</div>')
       : '<div class="empty"><span class="big">🥕</span>Aún no hay nada. Empieza creando un producto con los valores de su etiqueta.</div>';
     return;
   }
@@ -662,6 +675,7 @@ function renderAlimentos(){
     const u = a.tipo==="plato" ? "g" : uni(a);
     const extras = [];
     if(ordenAlim==="densidad" && num(a.kcal)>0) extras.push(`<span class="mp p">${f1(densidad(a))} g prot/100 kcal</span>`);
+    if(ordenAlim==="densidad_hid" && num(a.kcal)>0) extras.push(`<span class="mp h">${f1(densidadHid(a))} g hid/100 kcal</span>`);
     if(num(a.precio)>0) extras.push(`<span class="mp" style="color:var(--muted);background:var(--surface2)">${eur(num(a.precio))}/${uniGrande(u)}</span>`);
     return `
     <button class="fitem" onclick="${a.tipo==='plato'?`abrirPlato('${a.id}')`:`abrirAlimento('${a.id}')`}">
@@ -1226,7 +1240,7 @@ function renderSemana(){
       ${costeTotal>0 && (faltanPrecios||hayEstimados) ? `<p class="small muted" style="margin:6px 0 0">⚠ Coste parcial:${
           faltanPrecios?` ${faltanPrecios} alimento(s) sin precio en la ficha`:""}${
           faltanPrecios&&hayEstimados?" y":""}${
-          hayEstimados?` ${hayEstimados} comida(s) fuera de casa, que no se compran`:""}.</p>` : ""}
+          hayEstimados?` ${hayEstimados} comida(s) fuera de casa sin importe`:""}.</p>` : ""}
       ${conDatos.length ? "" : '<p class="small muted" style="margin:8px 0 0">Sin días registrados esta semana.</p>'}
     </div>`;
 }
@@ -1611,7 +1625,11 @@ function barra(icono, label, valor, objetivo, color){
 function costeDetalle(m){
   let c = 0, sinPrecio = 0, estimados = 0;
   MEALS.forEach(x=>(m.comidas[x.k]||[]).forEach(it=>{
-    if(it.libre){ estimados++; return; }     // comida fuera: no tiene precio de compra
+    if(it.libre){
+      // comida fuera: cuenta lo que costó, si el usuario lo apuntó
+      if(num(it.precio) > 0) c += num(it.precio); else estimados++;
+      return;
+    }
     const a = byId(it.id);
     if(!a) return;
     if(num(a.precio) > 0) c += coste(a, num(it.g)); else sinPrecio++;
@@ -1741,8 +1759,9 @@ function bloqueMenu(m){
                 const mm = macrosItem(it);
                 if(!mm) return "";
                 const nombre = it.libre ? esc(it.nombre||"Comida fuera") : esc(byId(it.id).nombre);
-                const detalle = it.libre ? '<span class="tag libre">estimado</span>'
-                                         : `<span class="muted num small">${f0(it.g)} ${uni(byId(it.id))}</span>`;
+                const detalle = it.libre
+                  ? '<span class="tag libre">estimado</span>'+(num(it.precio)>0?` <span class="muted num small">${eur(num(it.precio))}</span>`:"")
+                  : `<span class="muted num small">${f0(it.g)} ${uni(byId(it.id))}</span>`;
                 return `<button class="mi" onclick="${it.libre?`abrirLibre('${x.k}',${i})`:`editarItem('${x.k}',${i})`}">
                   ${it.libre ? '<span class="badge" style="background:rgba(255,107,170,.16)">🍴</span>' : badgeDe(byId(it.id))}
                   <span class="grow"><span class="nm">${nombre} ${detalle}</span>
@@ -1784,6 +1803,8 @@ function abrirLibre(mealKey, idx){
     <p class="small muted" style="margin:0 0 11px">Valores totales de lo que has comido, no por 100 g. Es una estimación: no entra en la lista de la compra.</p>
     <label class="f" for="l-nombre">Qué fue</label>
     <input id="l-nombre" value="${it?esc(it.nombre||""):""}" placeholder="Menú del día, arroz con costra…">
+    <label class="f" style="margin-top:10px" for="l-precio">Lo que costó en € (opcional)</label>
+    <input id="l-precio" inputmode="decimal" value="${it&&num(it.precio)>0?it.precio:""}" placeholder="opcional">
     <div class="cell c-kcal" style="margin:10px 0 9px">
       <label class="f" for="l-kcal">Calorías</label><input id="l-kcal" inputmode="decimal" value="${it?it.kcal:""}">
     </div>
@@ -1805,6 +1826,7 @@ function guardarLibre(mealKey, idx){
   const datos = {
     libre:true,
     nombre: document.getElementById("l-nombre").value.trim() || "Comida fuera",
+    precio: num(document.getElementById("l-precio").value),
     kcal:num(document.getElementById("l-kcal").value),
     prot:num(document.getElementById("l-prot").value),
     hid:num(document.getElementById("l-hid").value),
@@ -2263,7 +2285,7 @@ function usarGasto(kcal){
    El archivo se genera autodescriptivo: lleva un diccionario con el significado
    y las unidades de cada campo, para que un script pueda analizarlo sin conocer
    la app, y una sección de totales ya calculados. */
-const APP_VERSION = "1.4.6";
+const APP_VERSION = "1.4.7";
 const FORMATO_COPIA = 2;
 
 const DICCIONARIO = {
@@ -2346,6 +2368,7 @@ const DICCIONARIO = {
         libre: "true. Comida fuera de casa estimada a ojo, sin producto en el catálogo",
         nombre: "descripción de lo que comió",
         kcal_prot_hid_gra_fib: "valores TOTALES de lo comido, NO por 100. No se multiplican por nada",
+        precio: "opcional. Lo que costó esa comida, en euros, en total. 0 o ausente = el usuario no lo apuntó, no que fuera gratis",
         aviso: "son estimaciones del usuario, menos fiables que el resto"
       }
     },
